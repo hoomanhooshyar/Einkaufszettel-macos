@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1012387304775",
+    "project_id": "einkaufs-hoo900625",
+    "storage_bucket": "einkaufs-hoo900625.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1012387304775:android:5c602a7768c2af8ee5a862",
+        "android_client_info": {
+          "package_name": "com.hooman.einkaufszettel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1012387304775-8sl5qjubo79a61r5qc6q9eath6tkp1tp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hooman.einkaufszettel",
+            "certificate_hash": "1cae0f0a44be416280b4552791fd965d0149141d"
+          }
+        },
+        {
+          "client_id": "1012387304775-hcbibhcv0t4hoougvrgpv67e42c9kfgf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUpCNn_em6TkyWnFvN45wrV-qeup23gEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1012387304775-hcbibhcv0t4hoougvrgpv67e42c9kfgf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1012387304775-6fqg05r0negot1vn49o4p5fe7i0vrj60.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.hooman.project.BookApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

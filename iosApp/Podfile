@@ -1,0 +1,20 @@
+platform :ios, '14.0'
+use_frameworks! :linkage => :static
+inhibit_all_warnings!
+project 'iosApp.xcodeproj'
+
+target 'iosApp' do
+  # فقط فریم‌ورک KMP
+  pod 'composeApp', :path => '../composeApp'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |t|
+    t.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'gnu++17'
+      config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+      config.build_settings['OTHER_LDFLAGS'] = ['$(inherited)', '-ObjC']
+    end
+  end
+end

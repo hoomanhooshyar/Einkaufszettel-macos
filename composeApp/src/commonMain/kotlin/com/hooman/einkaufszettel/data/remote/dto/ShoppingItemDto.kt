@@ -1,0 +1,38 @@
+package com.hooman.einkaufszettel.data.remote.dto
+
+import com.hooman.einkaufszettel.domain.model.ShoppingItem
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ShoppingItemDto(
+    val billId: String = "",
+    val productId: String = "",
+    val itemCount: Int = 0,
+    val productName: String = "",
+    val productPrice: Double = 0.0,
+    val productImage: String? = null,
+    val userId: String = ""
+){
+    fun toDomain(id: String): ShoppingItem = ShoppingItem(
+        id = id,
+        billId = billId,
+        productId = productId,
+        itemCount = itemCount,
+        productName = productName,
+        productPrice = productPrice,
+        productImage = productImage,
+        userId = userId
+    )
+
+    companion object {
+        fun fromDomain(item: ShoppingItem): ShoppingItemDto = ShoppingItemDto(
+            billId = item.billId,
+            productId = item.productId,
+            itemCount = item.itemCount,
+            productName = item.productName,
+            productPrice = item.productPrice,
+            productImage = item.productImage,
+            userId = item.userId
+        )
+    }
+}
