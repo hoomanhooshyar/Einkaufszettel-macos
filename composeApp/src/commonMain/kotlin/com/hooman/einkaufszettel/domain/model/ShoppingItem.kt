@@ -8,5 +8,6 @@ data class ShoppingItem(
     val productName: String,
     val productPrice: Double,
     val productImage: String?,
+    val isChecked: Boolean,
     val userId: String
 )

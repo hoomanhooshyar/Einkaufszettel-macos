@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class GetAllBillsByUserIdFromRemoteUseCase(
     private val repository: FirebaseBillRepository
 ) {
-    suspend operator fun invoke(userId: String): Flow<Resource<List<Bill?>>>{
+    suspend operator fun invoke(userId: String): Flow<Resource<List<Bill>>>{
         return repository.getAllBillsByUserId(userId)
     }
 

@@ -7,4 +7,6 @@
     <string name="server_error">Server error</string>
     <string name="serialization_error">Serialization error</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="gesamt">Gesamt:</string>
+    <string name="no_bills">You don't have any bills</string>
 </resources>

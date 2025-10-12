@@ -9,7 +9,8 @@ fun ShoppingItem.toEntity(): ShoppingItemEntity {
         id = id,
         billId = billId,
         productId = productId.toLong(),
-        itemCount = itemCount
+        itemCount = itemCount,
+        isChecked = isChecked
     )
 }
 
@@ -25,6 +26,7 @@ fun ShoppingItemEntity.toShoppingItem(): ShoppingItem {
         productName = "",
         productPrice = 0.0,
         productImage = "",
+        isChecked = isChecked,
         userId = ""
     )
 }

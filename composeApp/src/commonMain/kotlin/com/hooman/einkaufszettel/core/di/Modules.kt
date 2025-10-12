@@ -9,10 +9,12 @@ import com.hooman.einkaufszettel.data.remote.FirebaseBillDataSourceImpl
 import com.hooman.einkaufszettel.data.remote.FirebaseProductDataSourceImpl
 import com.hooman.einkaufszettel.data.remote.FirebaseServiceImpl
 import com.hooman.einkaufszettel.data.remote.FirebaseShoppingItemDataSourceImpl
+import com.hooman.einkaufszettel.data.repository.AuthRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.FirebaseBillRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.FirebaseProductRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.FirebaseShoppingItemRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.LocalRepositoryImpl
+import com.hooman.einkaufszettel.domain.repository.AuthRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseBillRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseProductRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseShoppingItemRepository
@@ -45,8 +47,16 @@ import com.hooman.einkaufszettel.domain.usecase.InsertProductToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToRemoteUseCase
+import com.hooman.einkaufszettel.feature.presentation.create_list.CreateListViewModel
+import com.hooman.einkaufszettel.feature.presentation.home.HomeViewModel
+import com.hooman.einkaufszettel.feature.presentation.list_details.ListDetailsViewModel
+import com.hooman.einkaufszettel.feature.presentation.main.MainViewModel
+import com.hooman.einkaufszettel.feature.presentation.product.ProductViewModel
+import com.hooman.einkaufszettel.feature.presentation.report.ReportsViewModel
+import com.hooman.einkaufszettel.feature.presentation.settings.SettingsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -59,6 +69,9 @@ val sharedModule = module {
     single<FirebaseBillDataSource> { FirebaseBillDataSourceImpl(get()) }
     single<FirebaseProductDataSource> { FirebaseProductDataSourceImpl(get()) }
     single<FirebaseShoppingItemDataSource> { FirebaseShoppingItemDataSourceImpl(get()) }
+
+    //AuthRepository
+    single<AuthRepository> { AuthRepositoryImpl() }
 
     //Repositories
 
@@ -81,6 +94,14 @@ val sharedModule = module {
     single {
         get<AppDatabase>().dao
     }
+    viewModelOf(::HomeViewModel)
+    viewModelOf(::CreateListViewModel)
+    viewModelOf(::ListDetailsViewModel)
+    viewModelOf(::ProductViewModel)
+    viewModelOf(::ReportsViewModel)
+    viewModelOf(::SettingsViewModel)
+    viewModelOf(::MainViewModel)
+
 
 
 

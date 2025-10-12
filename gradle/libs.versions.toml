@@ -32,6 +32,7 @@ firebaseAuthVersion = "24.0.1"
 credentials = "1.5.0"
 credentialsPlayServicesAuth = "1.5.0"
 googleid = "1.1.1"
+icon = "1.7.3"
 [libraries]
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseAuth" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
@@ -84,6 +85,10 @@ google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", 
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+
+
+compose-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "icon" }
+compose-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "icon" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

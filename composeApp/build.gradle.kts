@@ -53,7 +53,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
             implementation(libs.ktor.client.okhttp)
@@ -72,6 +71,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
 
+            implementation(libs.compose.icons.core)
+            implementation(libs.compose.icons.extended)
+
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.jetbrains.compose.navigation)
@@ -89,6 +91,8 @@ kotlin {
             implementation(libs.firebase.firestore)
 
             implementation(libs.kotlinx.datetime)
+
+
 
         }
         nativeMain.dependencies {

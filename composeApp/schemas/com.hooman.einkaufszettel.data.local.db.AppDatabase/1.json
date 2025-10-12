@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b0a57edcc4a9e8a7b4a09384df07567c",
+    "identityHash": "aa78c43353014f2723bff8cb79aa8d4a",
     "entities": [
       {
         "tableName": "bill",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `billDate` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `billDate` INTEGER NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -19,6 +19,18 @@
             "columnName": "billDate",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -30,7 +42,7 @@
       },
       {
         "tableName": "shopping_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `billId` TEXT NOT NULL, `productId` INTEGER NOT NULL, `itemCount` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`billId`) REFERENCES `bill`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productId`) REFERENCES `product`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `billId` TEXT NOT NULL, `productId` INTEGER NOT NULL, `itemCount` INTEGER NOT NULL, `isChecked` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`billId`) REFERENCES `bill`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productId`) REFERENCES `product`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -53,6 +65,12 @@
           {
             "fieldPath": "itemCount",
             "columnName": "itemCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isChecked",
+            "columnName": "isChecked",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -146,7 +164,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b0a57edcc4a9e8a7b4a09384df07567c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'aa78c43353014f2723bff8cb79aa8d4a')"
     ]
   }
 }

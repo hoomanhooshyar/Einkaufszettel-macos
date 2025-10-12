@@ -11,7 +11,8 @@ data class ShoppingItemDto(
     val productName: String = "",
     val productPrice: Double = 0.0,
     val productImage: String? = null,
-    val userId: String = ""
+    val userId: String = "",
+    val isChecked: Boolean = false
 ){
     fun toDomain(id: String): ShoppingItem = ShoppingItem(
         id = id,
@@ -21,6 +22,7 @@ data class ShoppingItemDto(
         productName = productName,
         productPrice = productPrice,
         productImage = productImage,
+        isChecked = isChecked,
         userId = userId
     )
 
@@ -32,6 +34,7 @@ data class ShoppingItemDto(
             productName = item.productName,
             productPrice = item.productPrice,
             productImage = item.productImage,
+            isChecked = item.isChecked,
             userId = item.userId
         )
     }

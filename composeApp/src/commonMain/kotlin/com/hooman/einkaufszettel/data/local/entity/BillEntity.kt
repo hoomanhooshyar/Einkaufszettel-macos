@@ -8,5 +8,7 @@ import kotlinx.datetime.Instant
 data class BillEntity(
     @PrimaryKey()
     val id: String,
-    val billDate: Instant
+    val billDate: Instant,
+    val name: String,
+    val type: String
 )

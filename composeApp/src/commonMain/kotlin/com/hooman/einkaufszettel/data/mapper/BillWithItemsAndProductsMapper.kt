@@ -2,6 +2,7 @@ package com.hooman.einkaufszettel.data.mapper
 
 import com.hooman.einkaufszettel.data.local.relation.BillWithItemsAndProducts
 import com.hooman.einkaufszettel.domain.model.Bill
+import com.hooman.einkaufszettel.domain.model.PurchaseType
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 
 fun BillWithItemsAndProducts.toDomain(): Bill{
@@ -18,8 +19,12 @@ fun BillWithItemsAndProducts.toDomain(): Bill{
                 productPrice = shoppingItemWithProduct.product.price,
                 productImage = shoppingItemWithProduct.product.image,
                 billId = bill.id,
+                isChecked = shoppingItemWithProduct.item.isChecked,
                 userId = ""
             )
-        }
+        },
+        name = bill.name,
+        type = PurchaseType.valueOf(bill.type)
+
     )
 }

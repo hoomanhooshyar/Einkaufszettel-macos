@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class GetAllProductsByUserIdFromRemoteUseCase(
     private val repository: FirebaseProductRepository
 ) {
-    suspend operator fun invoke(userId: String): Flow<Resource<List<Product?>>>{
+    suspend operator fun invoke(userId: String): Flow<Resource<List<Product>>>{
         return repository.getAllProductsByUserId(userId)
     }
 
