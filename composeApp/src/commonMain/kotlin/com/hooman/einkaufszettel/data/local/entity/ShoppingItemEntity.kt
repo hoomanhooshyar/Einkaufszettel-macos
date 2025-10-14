@@ -27,7 +27,7 @@ data class ShoppingItemEntity(
     @PrimaryKey()
     val id: String,
     val billId: String,
-    val productId: Long,
+    val productId: String,
     val itemCount: Int,
     val isChecked: Boolean
 )

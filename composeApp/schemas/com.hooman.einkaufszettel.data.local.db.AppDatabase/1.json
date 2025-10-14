@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "aa78c43353014f2723bff8cb79aa8d4a",
+    "identityHash": "c077b1e937b6f1e2370b54e8b94cf066",
     "entities": [
       {
         "tableName": "bill",
@@ -42,7 +42,7 @@
       },
       {
         "tableName": "shopping_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `billId` TEXT NOT NULL, `productId` INTEGER NOT NULL, `itemCount` INTEGER NOT NULL, `isChecked` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`billId`) REFERENCES `bill`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productId`) REFERENCES `product`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `billId` TEXT NOT NULL, `productId` TEXT NOT NULL, `itemCount` INTEGER NOT NULL, `isChecked` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`billId`) REFERENCES `bill`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productId`) REFERENCES `product`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -59,7 +59,7 @@
           {
             "fieldPath": "productId",
             "columnName": "productId",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -164,7 +164,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'aa78c43353014f2723bff8cb79aa8d4a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c077b1e937b6f1e2370b54e8b94cf066')"
     ]
   }
 }

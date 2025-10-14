@@ -23,7 +23,15 @@ class FirebaseServiceImpl() : FirebaseService {
 
     override suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) { block() }
 
-    override suspend fun requiredUserId(): String = auth.currentUser?.uid ?: error("User not logged in")
+    override suspend fun requiredUserId(): String //= auth.currentUser?.uid ?: error("User not logged in")
+        {
+            auth.currentUser?.uid?.let { return it }
+
+            val result = auth.signInAnonymously()
+            val uid = result.user?.uid
+
+            return uid ?: error("User not logged in")
+        }
 
 
     override suspend fun <T> safe(block: suspend () -> T): Result<T> {

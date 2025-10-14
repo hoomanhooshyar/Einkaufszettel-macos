@@ -67,7 +67,7 @@ fun MainScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "$isConnected"
+                        text = if(isConnected) "Online" else "Offline"
                     )
                 },
                 navigationIcon = {

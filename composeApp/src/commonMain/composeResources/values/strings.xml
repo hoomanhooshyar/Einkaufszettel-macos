@@ -9,4 +9,5 @@
     <string name="unknown_error">Unknown error</string>
     <string name="gesamt">Gesamt:</string>
     <string name="no_bills">You don't have any bills</string>
+    <string name="not_logged_in">You are not logged in</string>
 </resources>

@@ -8,7 +8,7 @@ fun ShoppingItem.toEntity(): ShoppingItemEntity {
     return ShoppingItemEntity(
         id = id,
         billId = billId,
-        productId = productId.toLong(),
+        productId = productId,
         itemCount = itemCount,
         isChecked = isChecked
     )
@@ -21,7 +21,7 @@ fun ShoppingItemEntity.toShoppingItem(): ShoppingItem {
     return ShoppingItem(
         id = id,
         billId = billId,
-        productId = productId.toString(),
+        productId = productId,
         itemCount = itemCount,
         productName = "",
         productPrice = 0.0,
