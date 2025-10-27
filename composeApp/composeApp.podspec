@@ -9,7 +9,11 @@ Pod::Spec.new do |spec|
     spec.vendored_frameworks      = 'build/cocoapods/framework/ComposeApp.framework'
     spec.libraries                = 'c++'
     spec.ios.deployment_target    = '14.0'
-                
+    spec.dependency 'FirebaseAnalytics'
+    spec.dependency 'FirebaseAuth'
+    spec.dependency 'FirebaseCore'
+    spec.dependency 'FirebaseFirestore'
+    spec.dependency 'GoogleSignIn'
                 
     if !Dir.exist?('build/cocoapods/framework/ComposeApp.framework') || Dir.empty?('build/cocoapods/framework/ComposeApp.framework')
         raise "
@@ -51,4 +55,5 @@ Pod::Spec.new do |spec|
         }
     ]
     spec.resources = ['build/compose/cocoapods/compose-resources']
+    spec.source_files = '../iosApp/GoogleSignInBridge.{h,m}'
 end

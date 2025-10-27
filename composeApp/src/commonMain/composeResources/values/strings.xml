@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
+    <!-- Error and Message Strings   -->
     <string name="disk_full_error">Disk is full</string>
     <string name="request_timeout_error">Request timeout</string>
     <string name="too_many_request_error">Too many requests</string>
@@ -7,7 +8,16 @@
     <string name="server_error">Server error</string>
     <string name="serialization_error">Serialization error</string>
     <string name="unknown_error">Unknown error</string>
+    <!--  Information Strings  -->
     <string name="gesamt">Gesamt:</string>
     <string name="no_bills">You don't have any bills</string>
     <string name="not_logged_in">You are not logged in</string>
+    <string name="email">E-mail</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="google_sign_in">Sign in with Google</string>
+    <string name="apple_sign_in">Sign in with Apple</string>
+
+
 </resources>

@@ -38,6 +38,7 @@ import com.hooman.einkaufszettel.core.presentation.darkGreenColor
 import com.hooman.einkaufszettel.core.presentation.darkYellowColor
 import com.hooman.einkaufszettel.core.presentation.greenColor
 import com.hooman.einkaufszettel.core.presentation.whiteColor
+import com.hooman.einkaufszettel.feature.presentation.login.LoginScreenRoot
 import com.hooman.einkaufszettel.feature.presentation.main.components.BottomBar
 import com.hooman.einkaufszettel.feature.presentation.main.utils.BottomItems
 import com.hooman.einkaufszettel.feature.presentation.main.utils.shouldShowBottomBar
@@ -129,5 +130,11 @@ fun MainScreen(
             contentPadding = padding,
             snackBarHostState = snackBarHostState
         )
+
+        //LoginScreenRoot(
+          //  navController = rememberNavController(),
+         //   contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
+         //   snackBarHostState = snackBarHostState
+        //)
     }
 }

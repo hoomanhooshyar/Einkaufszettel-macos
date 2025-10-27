@@ -1,6 +1,8 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -21,7 +23,20 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
+//    targets.withType<KotlinNativeTarget>().configureEach {
+//        compilations.getByName("main").cinterops.create("FirebaseAnalyticsIosArm64") {
+//            val isSimulator = name.contains("Simulator", ignoreCase = true)
+//            compilerOpts(
+//                "-fmodules",
+//                "-fcxx-modules",
+//                "-isysroot",
+//                "/Users/hooman/sdk/iPhoneOS17.4.sdk"
+//            )
+//
+//        }
+//    }
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -43,12 +58,29 @@ kotlin {
             isStatic = true
         }
 
+        pod("GoogleSignIn") {
+            extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
+        }
+        pod("FirebaseCore"){
+            extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
+        }
+        pod("FirebaseAuth"){
+            extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
+        }
+        pod("FirebaseFirestore"){
+            extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
+        }
+        pod("FirebaseAnalytics"){
+            extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
+        }
+        extraSpecAttributes["source_files"] = "'../iosApp/GoogleSignInBridge.{h,m}'"
+
     }
 
     room {
         schemaDirectory("$projectDir/schemas")
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -98,14 +130,6 @@ kotlin {
         nativeMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
-
-        dependencies {
-            ksp(libs.androidx.room.compiler)
-            add("kspAndroid", libs.androidx.room.compiler)
-            add("kspIosX64", libs.androidx.room.compiler)
-            add("kspIosArm64", libs.androidx.room.compiler)
-            add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-        }
     }
 }
 
@@ -137,10 +161,14 @@ android {
 }
 
 dependencies {
+    //ksp(libs.androidx.room.compiler)
+    add("kspAndroid", libs.androidx.room.compiler.get())
+    add("kspIosX64", libs.androidx.room.compiler.get())
+    add("kspIosArm64", libs.androidx.room.compiler.get())
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler.get())
     implementation(libs.google.firebase.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     debugImplementation(compose.uiTooling)
 }
-

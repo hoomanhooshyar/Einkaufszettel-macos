@@ -1,0 +1,5 @@
+language = Objective-C
+package = cocoapods.GoogleSignIn
+headers = $(SRCROOT)/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GoogleSignIn.h
+compilerOpts = -fmodules -fcxx-modules
+linkerOpts = -framework GoogleSignIn

@@ -50,10 +50,14 @@ import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToRemoteUseCas
 import com.hooman.einkaufszettel.feature.presentation.create_list.CreateListViewModel
 import com.hooman.einkaufszettel.feature.presentation.home.HomeViewModel
 import com.hooman.einkaufszettel.feature.presentation.list_details.ListDetailsViewModel
+import com.hooman.einkaufszettel.feature.presentation.login.LoginViewModel
 import com.hooman.einkaufszettel.feature.presentation.main.MainViewModel
 import com.hooman.einkaufszettel.feature.presentation.product.ProductViewModel
 import com.hooman.einkaufszettel.feature.presentation.report.ReportsViewModel
 import com.hooman.einkaufszettel.feature.presentation.settings.SettingsViewModel
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.FirebaseAuth
+import dev.gitlive.firebase.auth.auth
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -69,9 +73,10 @@ val sharedModule = module {
     single<FirebaseBillDataSource> { FirebaseBillDataSourceImpl(get()) }
     single<FirebaseProductDataSource> { FirebaseProductDataSourceImpl(get()) }
     single<FirebaseShoppingItemDataSource> { FirebaseShoppingItemDataSourceImpl(get()) }
+    single<FirebaseAuth> { Firebase.auth }
 
     //AuthRepository
-    single<AuthRepository> { AuthRepositoryImpl() }
+    single<AuthRepository> { AuthRepositoryImpl(get()) }
 
     //Repositories
 
@@ -94,6 +99,8 @@ val sharedModule = module {
     single {
         get<AppDatabase>().dao
     }
+
+    //ViewModels
     viewModelOf(::HomeViewModel)
     viewModelOf(::CreateListViewModel)
     viewModelOf(::ListDetailsViewModel)
@@ -101,6 +108,7 @@ val sharedModule = module {
     viewModelOf(::ReportsViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::MainViewModel)
+    viewModelOf(::LoginViewModel)
 
 
 

@@ -50,7 +50,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.util.TableInfo
+import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.darkYellowColor
+import com.hooman.einkaufszettel.core.presentation.greenGradient
+import com.hooman.einkaufszettel.core.presentation.orangeGradient
+import com.hooman.einkaufszettel.core.presentation.purpleGradient
+import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.PurchaseType
@@ -76,12 +81,7 @@ fun HomeScreenRoot(
 
 
 
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF007EA7),
-            Color(0xFF00B4A5)
-        )
-    )
+
 
     LaunchedEffect(Unit){
         viewModel.observeBills()
@@ -101,7 +101,7 @@ fun HomeScreenRoot(
 
     HomeScreen(
         contentPadding = contentPadding,
-        background = gradient,
+        background = backgroundGradient,
         bills = viewModel.state.collectAsState().value.bills
     )
 }
@@ -119,33 +119,7 @@ fun HomeScreen(
         mutableStateOf("0.0")
     }
 
-    val greenGradient = Brush.horizontalGradient(
-        colors = listOf(
-            Color(0XFF5FE36D),
-            Color(0XFF32C85A)
-        )
-    )
 
-    val purpleGradient = Brush.horizontalGradient(
-        colors = listOf(
-            Color(0XFFB085F5),
-            Color(0XFF7E57C2)
-        )
-    )
-
-    val orangeGradient = Brush.horizontalGradient(
-        colors = listOf(
-            Color(0XFFFFD36E),
-            Color(0XFFFF9F40)
-        )
-    )
-
-    val redGradient = Brush.horizontalGradient(
-        colors = listOf(
-            Color(0xFFFF8A80),
-            Color(0xFFFF5252)
-        )
-    )
 
 
     Box(

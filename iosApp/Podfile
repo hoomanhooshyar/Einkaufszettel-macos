@@ -4,7 +4,11 @@ inhibit_all_warnings!
 project 'iosApp.xcodeproj'
 
 target 'iosApp' do
-  # فقط فریم‌ورک KMP
+  pod 'GoogleSignIn'
+  pod 'FirebaseCore'
+  pod 'FirebaseAuth'
+  pod 'FirebaseFirestore'
+  pod 'FirebaseAnalytics'
   pod 'composeApp', :path => '../composeApp'
 end
 

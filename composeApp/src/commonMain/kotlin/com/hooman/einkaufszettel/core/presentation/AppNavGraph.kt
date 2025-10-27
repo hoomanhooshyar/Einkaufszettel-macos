@@ -16,6 +16,8 @@ import com.hooman.einkaufszettel.feature.presentation.home.HomeScreenRoot
 import com.hooman.einkaufszettel.feature.presentation.home.HomeViewModel
 import com.hooman.einkaufszettel.feature.presentation.list_details.ListDetailsScreenRoot
 import com.hooman.einkaufszettel.feature.presentation.list_details.ListDetailsViewModel
+import com.hooman.einkaufszettel.feature.presentation.login.    LoginScreenRoot
+import com.hooman.einkaufszettel.feature.presentation.login.LoginViewModel
 import com.hooman.einkaufszettel.feature.presentation.product.ProductScreenRoot
 import com.hooman.einkaufszettel.feature.presentation.product.ProductViewModel
 import com.hooman.einkaufszettel.feature.presentation.report.ReportsScreenRoot
@@ -88,6 +90,16 @@ fun AppNavGraph(
                         onBack = {navController.navigateUp()},
                         onAddProduct = {navController.navigate(Routes.Products)},
                         contentPadding = contentPadding
+                    )
+                }
+
+                composable<Routes.Login> {
+                    val vm = koinViewModel<LoginViewModel>()
+                    LoginScreenRoot(
+                        viewModel = vm,
+                        navController = navController,
+                        contentPadding = contentPadding,
+                        snackBarHostState = snackBarHostState
                     )
                 }
             }

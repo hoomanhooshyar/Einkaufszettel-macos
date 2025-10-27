@@ -45,7 +45,13 @@ class HomeViewModel(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state
 
-
+    init {
+        viewModelScope.launch {
+            runCatching { svc.requiredUserId() }
+            addBill(svc)
+            addProduct(svc)
+        }
+    }
 
 
     fun observeBills(){
