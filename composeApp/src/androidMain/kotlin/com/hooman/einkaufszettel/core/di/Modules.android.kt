@@ -21,9 +21,9 @@ actual val platformModule: Module
             context = androidContext(),
             webClient = androidContext().getString(R.string.default_web_client_id)
         ) }
-        single {
-            DatabaseConstructor.initializeWith(get())
-            DatabaseConstructor.initialize()
-        }
+//        single {
+//            //DatabaseConstructor.initializeWith(get())
+//            DatabaseConstructor.initialize()
+//        }
     }
 

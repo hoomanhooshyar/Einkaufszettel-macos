@@ -132,9 +132,9 @@ fun MainScreen(
         )
 
         //LoginScreenRoot(
-          //  navController = rememberNavController(),
-         //   contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
-         //   snackBarHostState = snackBarHostState
+            //navController = rememberNavController(),
+            //contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
+          //  snackBarHostState = snackBarHostState
         //)
     }
 }

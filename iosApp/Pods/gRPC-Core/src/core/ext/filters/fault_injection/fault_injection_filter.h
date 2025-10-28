@@ -14,17 +14,23 @@
 // limitations under the License.
 //
 
-#ifndef GRPC_CORE_EXT_FILTERS_FAULT_INJECTION_FAULT_INJECTION_FILTER_H
-#define GRPC_CORE_EXT_FILTERS_FAULT_INJECTION_FAULT_INJECTION_FILTER_H
+#ifndef GRPC_SRC_CORE_EXT_FILTERS_FAULT_INJECTION_FAULT_INJECTION_FILTER_H
+#define GRPC_SRC_CORE_EXT_FILTERS_FAULT_INJECTION_FAULT_INJECTION_FILTER_H
 
 #include <grpc/support/port_platform.h>
+#include <stddef.h>
 
-#include "src/core/ext/filters/fault_injection/service_config_parser.h"
-#include "src/core/lib/channel/channel_stack.h"
+#include <memory>
 
-// Channel arg key for enabling parsing fault injection via method config.
-#define GRPC_ARG_PARSE_FAULT_INJECTION_METHOD_CONFIG \
-  "grpc.parse_fault_injection_method_config"
+#include "absl/base/thread_annotations.h"
+#include "absl/random/random.h"
+#include "absl/status/statusor.h"
+#include "src/core/lib/channel/channel_args.h"
+#include "src/core/lib/channel/channel_fwd.h"
+#include "src/core/lib/channel/promise_based_filter.h"
+#include "src/core/lib/promise/arena_promise.h"
+#include "src/core/lib/transport/transport.h"
+#include "src/core/util/sync.h"
 
 namespace grpc_core {
 
@@ -32,8 +38,44 @@ namespace grpc_core {
 // of the ordinary channel stack. The fault injection filter fetches fault
 // injection policy from the method config of service config returned by the
 // resolver, and enforces the fault injection policy.
-extern const grpc_channel_filter FaultInjectionFilterVtable;
+class FaultInjectionFilter
+    : public ImplementChannelFilter<FaultInjectionFilter> {
+ public:
+  static const grpc_channel_filter kFilter;
+
+  static absl::string_view TypeName() { return "fault_injection_filter"; }
+
+  static absl::StatusOr<std::unique_ptr<FaultInjectionFilter>> Create(
+      const ChannelArgs& args, ChannelFilter::Args filter_args);
+
+  explicit FaultInjectionFilter(ChannelFilter::Args filter_args);
+
+  // Construct a promise for one call.
+  class Call {
+   public:
+    ArenaPromise<absl::Status> OnClientInitialMetadata(
+        ClientMetadata& md, FaultInjectionFilter* filter);
+    static const NoInterceptor OnServerInitialMetadata;
+    static const NoInterceptor OnServerTrailingMetadata;
+    static const NoInterceptor OnClientToServerMessage;
+    static const NoInterceptor OnClientToServerHalfClose;
+    static const NoInterceptor OnServerToClientMessage;
+    static const NoInterceptor OnFinalize;
+  };
+
+ private:
+  class InjectionDecision;
+  InjectionDecision MakeInjectionDecision(
+      const ClientMetadata& initial_metadata);
+
+  // The relative index of instances of the same filter.
+  size_t index_;
+  const size_t service_config_parser_index_;
+  Mutex mu_;
+  absl::InsecureBitGen abort_rand_generator_ ABSL_GUARDED_BY(mu_);
+  absl::InsecureBitGen delay_rand_generator_ ABSL_GUARDED_BY(mu_);
+};
 
 }  // namespace grpc_core
 
-#endif  // GRPC_CORE_EXT_FILTERS_FAULT_INJECTION_FAULT_INJECTION_FILTER_H
+#endif  // GRPC_SRC_CORE_EXT_FILTERS_FAULT_INJECTION_FAULT_INJECTION_FILTER_H

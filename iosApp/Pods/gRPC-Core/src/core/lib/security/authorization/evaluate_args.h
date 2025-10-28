@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef GRPC_CORE_LIB_SECURITY_AUTHORIZATION_EVALUATE_ARGS_H
-#define GRPC_CORE_LIB_SECURITY_AUTHORIZATION_EVALUATE_ARGS_H
+#ifndef GRPC_SRC_CORE_LIB_SECURITY_AUTHORIZATION_EVALUATE_ARGS_H
+#define GRPC_SRC_CORE_LIB_SECURITY_AUTHORIZATION_EVALUATE_ARGS_H
 
+#include <grpc/grpc_security.h>
 #include <grpc/support/port_platform.h>
 
-#include <map>
+#include <string>
+#include <vector>
 
+#include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
-
-#include "src/core/lib/iomgr/endpoint.h"
-#include "src/core/lib/iomgr/resolve_address.h"
-#include "src/core/lib/security/context/security_context.h"
+#include "src/core/lib/channel/channel_args.h"
+#include "src/core/lib/iomgr/resolved_address.h"
 #include "src/core/lib/transport/metadata_batch.h"
 
 namespace grpc_core {
 
-class EvaluateArgs {
+class EvaluateArgs final {
  public:
   // Caller is responsible for ensuring auth_context outlives PerChannelArgs
   // struct.
@@ -41,7 +42,7 @@ class EvaluateArgs {
       int port = 0;
     };
 
-    PerChannelArgs(grpc_auth_context* auth_context, grpc_endpoint* endpoint);
+    PerChannelArgs(grpc_auth_context* auth_context, const ChannelArgs& args);
 
     absl::string_view transport_security_type;
     absl::string_view spiffe_id;
@@ -57,7 +58,6 @@ class EvaluateArgs {
       : metadata_(metadata), channel_args_(channel_args) {}
 
   absl::string_view GetPath() const;
-  absl::string_view GetHost() const;
   absl::string_view GetAuthority() const;
   absl::string_view GetMethod() const;
   // Returns metadata value(s) for the specified key.
@@ -90,4 +90,4 @@ class EvaluateArgs {
 
 }  // namespace grpc_core
 
-#endif  // GRPC_CORE_LIB_SECURITY_AUTHORIZATION_EVALUATE_ARGS_H
+#endif  // GRPC_SRC_CORE_LIB_SECURITY_AUTHORIZATION_EVALUATE_ARGS_H

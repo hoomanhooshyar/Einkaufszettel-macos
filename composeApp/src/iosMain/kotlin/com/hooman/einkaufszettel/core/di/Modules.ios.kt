@@ -14,8 +14,8 @@ actual val platformModule: Module
 
         single<ConnectivityObserver> { ConnectivityObserverImpl() }
 
-        single {
-            DatabaseConstructor.initializeWith(get())
-            DatabaseConstructor.initialize()
-        }
+//        single {
+//            DatabaseConstructor.initializeWith(get())
+//            DatabaseConstructor.initialize()
+//        }
     }

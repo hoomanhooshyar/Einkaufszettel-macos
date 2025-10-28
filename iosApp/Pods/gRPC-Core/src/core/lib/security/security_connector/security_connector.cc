@@ -1,86 +1,76 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+//
+//
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//
+
+#include "src/core/lib/security/security_connector/security_connector.h"
 
 #include <grpc/support/port_platform.h>
+#include <string.h>
 
-#include "src/core/lib/security/security_connector/security_connector.h"
+#include <utility>
 
-#include <grpc/slice_buffer.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "src/core/lib/channel/channel_args.h"
-#include "src/core/lib/channel/handshaker.h"
-#include "src/core/lib/gpr/string.h"
-#include "src/core/lib/security/context/security_context.h"
 #include "src/core/lib/security/credentials/credentials.h"
-#include "src/core/lib/security/security_connector/security_connector.h"
-#include "src/core/lib/security/transport/security_handshaker.h"
-
-grpc_core::DebugOnlyTraceFlag grpc_trace_security_connector_refcount(
-    false, "security_connector_refcount");
-
-grpc_server_security_connector::grpc_server_security_connector(
-    const char* url_scheme,
-    grpc_core::RefCountedPtr<grpc_server_credentials> server_creds)
-    : grpc_security_connector(url_scheme),
-      server_creds_(std::move(server_creds)) {}
-
-grpc_server_security_connector::~grpc_server_security_connector() = default;
+#include "src/core/util/debug_location.h"
+#include "src/core/util/useful.h"
 
 grpc_channel_security_connector::grpc_channel_security_connector(
-    const char* url_scheme,
+    absl::string_view url_scheme,
     grpc_core::RefCountedPtr<grpc_channel_credentials> channel_creds,
     grpc_core::RefCountedPtr<grpc_call_credentials> request_metadata_creds)
     : grpc_security_connector(url_scheme),
       channel_creds_(std::move(channel_creds)),
       request_metadata_creds_(std::move(request_metadata_creds)) {}
 
-grpc_channel_security_connector::~grpc_channel_security_connector() {}
-
-int grpc_security_connector_cmp(const grpc_security_connector* sc,
-                                const grpc_security_connector* other) {
-  if (sc == nullptr || other == nullptr) {
-    return grpc_core::QsortCompare(sc, other);
-  }
-  return sc->cmp(other);
-}
-
 int grpc_channel_security_connector::channel_security_connector_cmp(
     const grpc_channel_security_connector* other) const {
   const grpc_channel_security_connector* other_sc =
       static_cast<const grpc_channel_security_connector*>(other);
-  GPR_ASSERT(channel_creds() != nullptr);
-  GPR_ASSERT(other_sc->channel_creds() != nullptr);
-  int c = grpc_core::QsortCompare(channel_creds(), other_sc->channel_creds());
+  CHECK_NE(channel_creds(), nullptr);
+  CHECK_NE(other_sc->channel_creds(), nullptr);
+  int c = channel_creds()->cmp(other_sc->channel_creds());
   if (c != 0) return c;
   return grpc_core::QsortCompare(request_metadata_creds(),
                                  other_sc->request_metadata_creds());
 }
 
+grpc_core::UniqueTypeName grpc_channel_security_connector::type() const {
+  return channel_creds_->type();
+}
+
+grpc_server_security_connector::grpc_server_security_connector(
+    absl::string_view url_scheme,
+    grpc_core::RefCountedPtr<grpc_server_credentials> server_creds)
+    : grpc_security_connector(url_scheme),
+      server_creds_(std::move(server_creds)) {}
+
 int grpc_server_security_connector::server_security_connector_cmp(
     const grpc_server_security_connector* other) const {
   const grpc_server_security_connector* other_sc =
       static_cast<const grpc_server_security_connector*>(other);
-  GPR_ASSERT(server_creds() != nullptr);
-  GPR_ASSERT(other_sc->server_creds() != nullptr);
+  CHECK_NE(server_creds(), nullptr);
+  CHECK_NE(other_sc->server_creds(), nullptr);
   return grpc_core::QsortCompare(server_creds(), other_sc->server_creds());
+}
+
+grpc_core::UniqueTypeName grpc_server_security_connector::type() const {
+  return server_creds_->type();
 }
 
 static void connector_arg_destroy(void* p) {
@@ -113,8 +103,8 @@ grpc_arg grpc_security_connector_to_arg(grpc_security_connector* sc) {
 grpc_security_connector* grpc_security_connector_from_arg(const grpc_arg* arg) {
   if (strcmp(arg->key, GRPC_ARG_SECURITY_CONNECTOR) != 0) return nullptr;
   if (arg->type != GRPC_ARG_POINTER) {
-    gpr_log(GPR_ERROR, "Invalid type %d for arg %s", arg->type,
-            GRPC_ARG_SECURITY_CONNECTOR);
+    LOG(ERROR) << "Invalid type " << arg->type << " for arg "
+               << GRPC_ARG_SECURITY_CONNECTOR;
     return nullptr;
   }
   return static_cast<grpc_security_connector*>(arg->value.pointer.p);

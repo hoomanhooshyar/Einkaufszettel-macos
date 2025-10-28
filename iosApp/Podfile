@@ -9,6 +9,7 @@ target 'iosApp' do
   pod 'FirebaseAuth'
   pod 'FirebaseFirestore'
   pod 'FirebaseAnalytics'
+  pod 'FirebaseAppCheck'
   pod 'composeApp', :path => '../composeApp'
 end
 
@@ -19,6 +20,12 @@ post_install do |installer|
       config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'gnu++17'
       config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
       config.build_settings['OTHER_LDFLAGS'] = ['$(inherited)', '-ObjC']
+
+      # 🔧 حذف فلگ -G از C++ (در صورت وجود)
+      flags = config.build_settings['OTHER_CPLUSPLUSFLAGS'] || ''
+      if flags.include?('-G')
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] = flags.gsub('-G', '').strip
+      end
     end
   end
 end

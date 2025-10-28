@@ -20,7 +20,7 @@ interface AppDao {
 
     @Transaction
     @Query("SELECT * FROM bill ORDER BY billDate DESC")
-    fun getAllBills(): Flow<List<BillWithItemsAndProducts?>>
+    fun getAllBills(): Flow<List<BillWithItemsAndProducts>>
 
     @Transaction
     @Query("SELECT * FROM bill WHERE id = :id LIMIT 1")
@@ -40,11 +40,11 @@ interface AppDao {
 
     @Transaction
     @Query("SELECT * FROM product")
-    fun getAllProducts(): Flow<List<ProductEntity?>>
+    fun getAllProducts(): Flow<List<ProductEntity>>
 
     @Transaction
     @Query("SELECT * FROM product WHERE name LIKE '%' || :name || '%'")
-    fun getProductByName(name: String): Flow<List<ProductEntity?>>
+    fun getProductByName(name: String): Flow<List<ProductEntity>>
 
     @Delete
     suspend fun deleteProduct(product: ProductEntity)

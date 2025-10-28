@@ -37,6 +37,7 @@ kotlin {
 //        }
 //    }
 
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -57,6 +58,8 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
+
+
 
         pod("GoogleSignIn") {
             extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
@@ -131,6 +134,10 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
     }
+
+
+
+
 }
 
 android {
@@ -161,7 +168,7 @@ android {
 }
 
 dependencies {
-    //ksp(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler.get())
     add("kspAndroid", libs.androidx.room.compiler.get())
     add("kspIosX64", libs.androidx.room.compiler.get())
     add("kspIosArm64", libs.androidx.room.compiler.get())

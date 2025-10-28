@@ -15,7 +15,7 @@ import com.hooman.einkaufszettel.data.local.entity.ShoppingItemEntity
     version = 1
 )
 @TypeConverters(Converter::class)
-//@ConstructedBy(DatabaseConstructor::class)
+@ConstructedBy(DatabaseConstructor::class)
 abstract class AppDatabase: RoomDatabase() {
     abstract val dao: AppDao
 

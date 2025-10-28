@@ -1,46 +1,38 @@
-/*
- *
- * Copyright 2016 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
-#include <grpc/support/port_platform.h>
+//
+//
+// Copyright 2016 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//
 
 #include "src/core/lib/slice/percent_encoding.h"
 
+#include <grpc/support/port_platform.h>
+#include <stdlib.h>
+
 #include <cstdint>
+#include <utility>
 
-#include <grpc/support/log.h>
-
-#include "src/core/lib/gprpp/bitset.h"
-#include "src/core/lib/slice/slice_internal.h"
-
-#if __cplusplus > 201103l
-#define GRPC_PCTENCODE_CONSTEXPR_FN constexpr
-#define GRPC_PCTENCODE_CONSTEXPR_VALUE constexpr
-#else
-#define GRPC_PCTENCODE_CONSTEXPR_FN
-#define GRPC_PCTENCODE_CONSTEXPR_VALUE const
-#endif
+#include "absl/log/check.h"
+#include "src/core/util/bitset.h"
 
 namespace grpc_core {
 
 namespace {
 class UrlTable : public BitSet<256> {
  public:
-  GRPC_PCTENCODE_CONSTEXPR_FN UrlTable() {
+  constexpr UrlTable() {
     for (int i = 'a'; i <= 'z'; i++) set(i);
     for (int i = 'A'; i <= 'Z'; i++) set(i);
     for (int i = '0'; i <= '9'; i++) set(i);
@@ -51,11 +43,11 @@ class UrlTable : public BitSet<256> {
   }
 };
 
-GRPC_PCTENCODE_CONSTEXPR_VALUE UrlTable g_url_table;
+constexpr UrlTable g_url_table;
 
 class CompatibleTable : public BitSet<256> {
  public:
-  GRPC_PCTENCODE_CONSTEXPR_FN CompatibleTable() {
+  constexpr CompatibleTable() {
     for (int i = 32; i <= 126; i++) {
       if (i == '%') continue;
       set(i);
@@ -63,7 +55,7 @@ class CompatibleTable : public BitSet<256> {
   }
 };
 
-GRPC_PCTENCODE_CONSTEXPR_VALUE CompatibleTable g_compatible_table;
+constexpr CompatibleTable g_compatible_table;
 
 // Map PercentEncodingType to a lookup table of legal symbols for that encoding.
 const BitSet<256>& LookupTableForPercentEncodingType(PercentEncodingType type) {
@@ -107,7 +99,7 @@ Slice PercentEncodeSlice(Slice slice, PercentEncodingType type) {
       *q++ = hex[c & 15];
     }
   }
-  GPR_ASSERT(q == out.end());
+  CHECK(q == out.end());
   return Slice(std::move(out));
 }
 

@@ -20,7 +20,7 @@ class LocalRepositoryImpl(
         emit(Resource.Loading())
         try {
             dao.getAllBills().collect { bills ->
-               emit(Resource.Success(data = bills.map{it!!.toDomain()}))
+               emit(Resource.Success(data = bills.map{it.toDomain()}))
              }
         }catch (e: Exception){
             emit(Resource.Error(e.message))
@@ -89,7 +89,7 @@ class LocalRepositoryImpl(
         emit(Resource.Loading())
         try {
             dao.getAllProducts().collect { products ->
-                emit(Resource.Success(data = products.map { it?.toProduct() }))
+                emit(Resource.Success(data = products.map { it.toProduct() }))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.message))
@@ -100,7 +100,7 @@ class LocalRepositoryImpl(
         emit(Resource.Loading())
         try {
             dao.getProductByName(name).collect { products ->
-                emit(Resource.Success(data = products.map { it?.toProduct() }))
+                emit(Resource.Success(data = products.map { it.toProduct() }))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.message))

@@ -28,6 +28,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class GIDGoogleUser;
 @class GIDSignInInternalOptions;
+@class GTMKeychainStore;
+@class GIDAppCheck;
+@class GIDAuthStateMigration;
 
 /// Represents a completion block that takes a `GIDSignInResult` on success or an error if the
 /// operation was unsuccessful.
@@ -43,8 +46,17 @@ typedef void (^GIDDisconnectCompletion)(NSError *_Nullable error);
 /// Redeclare |currentUser| as readwrite for internal use.
 @property(nonatomic, readwrite, nullable) GIDGoogleUser *currentUser;
 
-/// Private initializer for |GIDSignIn|.
-- (instancetype)initPrivate;
+/// Private initializer taking a `GTMKeychainStore`.
+- (instancetype)initWithKeychainStore:(GTMKeychainStore *)keychainStore
+            authStateMigrationService:(GIDAuthStateMigration *)authStateMigrationService;
+
+#if TARGET_OS_IOS && !TARGET_OS_MACCATALYST
+/// Private initializer taking a `GTMKeychainStore` and `GIDAppCheckProvider`.
+- (instancetype)initWithKeychainStore:(GTMKeychainStore *)keychainStore
+            authStateMigrationService:(GIDAuthStateMigration *)authStateMigrationService
+                             appCheck:(GIDAppCheck *)appCheck
+API_AVAILABLE(ios(14));
+#endif // TARGET_OS_IOS || !TARGET_OS_MACCATALYST
 
 /// Authenticates with extra options.
 - (void)signInWithOptions:(GIDSignInInternalOptions *)options;
@@ -65,7 +77,7 @@ typedef void (^GIDDisconnectCompletion)(NSError *_Nullable error);
 /// instance will be returned reflecting the new scopes and saved sign-in state will be updated.
 ///
 /// @param scopes The scopes to ask the user to consent to.
-/// @param presentingViewController The view controller used to present `SFSafariViewContoller` on
+/// @param presentingViewController The view controller used to present `SFSafariViewController` on
 ///     iOS 9 and 10 and to supply `presentationContextProvider` for `ASWebAuthenticationSession` on
 ///     iOS 13+.
 /// @param completion The block that is called on completion.  This block will be called asynchronously
