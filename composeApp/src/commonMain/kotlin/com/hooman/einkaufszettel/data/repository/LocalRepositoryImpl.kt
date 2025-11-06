@@ -27,7 +27,7 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun getBillById(billId: String): Flow<Resource<Bill?>> = flow {
+    override fun getBillById(billId: String): Flow<Resource<Bill>> = flow {
         emit(Resource.Loading())
         try {
             dao.getBillById(billId).collect { bill ->
@@ -85,7 +85,7 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun getAllProducts(): Flow<Resource<List<Product?>>> = flow {
+    override fun getAllProducts(): Flow<Resource<List<Product>>> = flow {
         emit(Resource.Loading())
         try {
             dao.getAllProducts().collect { products ->
@@ -96,7 +96,7 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun getProductByName(name: String): Flow<Resource<List<Product?>>> = flow{
+    override fun getProductByName(name: String): Flow<Resource<List<Product>>> = flow{
         emit(Resource.Loading())
         try {
             dao.getProductByName(name).collect { products ->
@@ -107,7 +107,7 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun getProductById(productId: String): Flow<Resource<Product?>> = flow {
+    override fun getProductById(productId: String): Flow<Resource<Product>> = flow {
         emit(Resource.Loading())
         try {
             dao.getProductById(productId).collect { product ->

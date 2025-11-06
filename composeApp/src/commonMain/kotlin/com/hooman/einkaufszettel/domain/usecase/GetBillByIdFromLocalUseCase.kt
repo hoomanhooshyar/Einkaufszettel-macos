@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class GetBillByIdFromLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(billId: String): Flow<Resource<Bill?>>{
+    suspend operator fun invoke(billId: String): Flow<Resource<Bill>>{
         return repository.getBillById(billId)
     }
 

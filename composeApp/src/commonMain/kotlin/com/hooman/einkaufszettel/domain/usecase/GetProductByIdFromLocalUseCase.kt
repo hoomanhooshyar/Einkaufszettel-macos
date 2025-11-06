@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 class GetProductByIdFromLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(productId: String): Flow<Resource<Product?>>{
+    suspend operator fun invoke(productId: String): Flow<Resource<Product>>{
         return repository.getProductById(productId)
     }
 }

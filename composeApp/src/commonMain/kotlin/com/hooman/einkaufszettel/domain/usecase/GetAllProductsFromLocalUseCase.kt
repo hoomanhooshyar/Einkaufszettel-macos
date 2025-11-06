@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class GetAllProductsFromLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(): Flow<Resource<List<Product?>>> {
+     operator fun invoke(): Flow<Resource<List<Product>>> {
         return repository.getAllProducts()
     }
 }

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class GetProductByNameFromLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(name: String): Flow<Resource<List<Product?>>> {
+    suspend operator fun invoke(name: String): Flow<Resource<List<Product>>> {
         return repository.getProductByName(name)
     }
 }

@@ -8,9 +8,12 @@
     <string name="server_error">Server error</string>
     <string name="serialization_error">Serialization error</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="product_delete_from_remote">Product deleted from server</string>
+    <string name="product_delete_from_local">Product deleted from local database"</string>
     <!--  Information Strings  -->
     <string name="gesamt">Gesamt:</string>
     <string name="no_bills">You don't have any bills</string>
+    <string name="no_products">You don't have any products</string>
     <string name="not_logged_in">You are not logged in</string>
     <string name="email">E-mail</string>
     <string name="password">Password</string>

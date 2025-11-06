@@ -54,7 +54,8 @@ fun AppNavGraph(
                     val vm = koinViewModel<ProductViewModel>()
                     ProductScreenRoot(
                         viewModel = vm,
-                        contentPadding = contentPadding
+                        contentPadding = contentPadding,
+                        snackBarHostState = snackBarHostState
                     )
                 }
 
