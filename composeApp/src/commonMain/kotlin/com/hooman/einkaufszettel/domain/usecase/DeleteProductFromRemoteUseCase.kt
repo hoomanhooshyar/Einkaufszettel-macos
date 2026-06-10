@@ -8,7 +8,7 @@ class DeleteProductFromRemoteUseCase(
     private val repository: FirebaseProductRepository
 
 ) {
-    suspend operator fun invoke(productId: String): Flow<Resource<Unit>> {
+    suspend operator fun invoke(productId: String): Resource<Unit> {
         return repository.deleteProduct(productId)
     }
 }

@@ -20,7 +20,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.hooman.einkaufszettel.app.Routes
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
@@ -31,51 +32,51 @@ import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.feature.presentation.product.components.ProductItem
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.no_products
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ProductScreenRoot(
-    viewModel: ProductViewModel,
+    viewModel: ProductViewModel = koinViewModel(),
     snackBarHostState: SnackbarHostState,
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    navController: NavController
 ) {
 
+    val state by viewModel.state.collectAsState()
+    val deleteState by viewModel.deleteState.collectAsState()
 
-    LaunchedEffect(Unit){
-        viewModel.observeProduct()
-    }
+    val deleteMessageText = deleteState?.asString()
+    val errorMessageText = state.error?.asString()
 
-    LaunchedEffect(Unit){
-        viewModel.deleteState.collectLatest { message ->
-            if(message != null){
-                snackBarHostState.showSnackbar(
-                    message = viewModel.deleteState.value!!,
-                    duration = SnackbarDuration.Long
-                )
-            }
+    LaunchedEffect(deleteMessageText){
+        if(deleteMessageText != null){
+            snackBarHostState.showSnackbar(
+                message = deleteMessageText,
+                duration = SnackbarDuration.Short
+            )
             viewModel.clearDeleteState()
         }
-
     }
 
-    if(viewModel.state.collectAsState().value.errorMessage != null){
-        val cs = rememberCoroutineScope()
-        val error: String = viewModel.state.collectAsState().value.errorMessage!!.asString()
-        cs.launch {
+    LaunchedEffect(errorMessageText){
+        if(errorMessageText != null){
             snackBarHostState.showSnackbar(
-                message = error,
-                duration = SnackbarDuration.Long
+                message = errorMessageText,
+                duration = SnackbarDuration.Short
             )
+            viewModel.clearError()
         }
     }
 
     ProductScreen(
         contentPadding = contentPadding,
         products = viewModel.state.collectAsState().value.products,
-        onProductClick = {},
+        onProductClick = {
+            navController.navigate(Routes.AddProduct(it.id))
+        },
         onDeleteClick = {product -> viewModel.deleteProduct(product)}
     )
 }

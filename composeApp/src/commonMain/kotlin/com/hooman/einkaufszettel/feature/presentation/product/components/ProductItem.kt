@@ -1,15 +1,15 @@
 package com.hooman.einkaufszettel.feature.presentation.product.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -22,38 +22,38 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil3.Image
-import coil3.compose.rememberAsyncImagePainter
+import com.hooman.einkaufszettel.core.presentation.AppDimens
+
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.domain.model.Product
-import einkaufszettel.composeapp.generated.resources.Res
-import einkaufszettel.composeapp.generated.resources.noimage
-import org.jetbrains.compose.resources.painterResource
+import com.hooman.einkaufszettel.feature.presentation.components.ProductImage
+
 
 @Composable
 fun ProductItem(
     product: Product,
-    onProductClick: (product: Product) -> Unit,
+    onProductClick: (productId: String) -> Unit,
     onDeleteClick: (product: Product) -> Unit,
     modifier: Modifier = Modifier,
     backgroundColor: Brush
 ) {
+    val imageSize = 50.dp
+    val spacerWidth = 16.dp
     Card(
         modifier = modifier
-            .clickable(onClick = {onProductClick(product)})
-            .padding(8.dp),
-        shape = RoundedCornerShape(32.dp),
+            .padding(AppDimens.spacingSmall),
+        shape = RoundedCornerShape(AppDimens.cardRadius),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 8.dp
+            defaultElevation = AppDimens.cardElevation
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent
-        )
+        ),
+        onClick = {onProductClick(product.id)}
     ) {
         Box(
             modifier = Modifier
@@ -65,38 +65,36 @@ fun ProductItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
-                Image(
-                    painter = if(product.image != null) rememberAsyncImagePainter(product.image) else painterResource(
-                        Res.drawable.noimage),
-                    contentDescription = product.name,
+                ProductImage(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .padding(vertical = 16.dp, horizontal = 12.dp),
-                    contentScale = ContentScale.Crop
+                        .padding(vertical = AppDimens.extraSpacing, horizontal = AppDimens.spacingMedium)
+                        .size(imageSize),
+                    imageUrl = product.image ?:  "noimage"
+
+                )
+                Spacer(
+                    modifier = Modifier.width(spacerWidth)
                 )
                 Column(
-                    modifier = Modifier
-                        .weight(1f),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-
+                    modifier = Modifier.weight(1f)
                 ){
                     Text(
                         text = product.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = whiteColor
+                        style = MaterialTheme.typography.titleLarge,
+                        color = whiteColor,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${product.price} €",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = whiteColor
+                        style = MaterialTheme.typography.titleLarge,
+                        color = whiteColor,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
+
                 IconButton(
                     onClick = { onDeleteClick(product) },
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
                 ){
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -108,5 +106,4 @@ fun ProductItem(
         }
 
     }
-
 }

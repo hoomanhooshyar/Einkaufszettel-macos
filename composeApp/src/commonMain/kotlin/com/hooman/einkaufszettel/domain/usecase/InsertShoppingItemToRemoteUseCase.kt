@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class InsertShoppingItemToRemoteUseCase(
     private val repository: FirebaseShoppingItemRepository
 ) {
-    suspend operator fun invoke(shoppingItem: ShoppingItem): Flow<Resource<Unit>> {
+    suspend operator fun invoke(shoppingItem: ShoppingItem):Resource<Unit> {
         return repository.insertShoppingItem(shoppingItem)
     }
 }

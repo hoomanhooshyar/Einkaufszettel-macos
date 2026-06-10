@@ -7,29 +7,25 @@ import com.hooman.einkaufszettel.core.presentation.UiText
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.repository.AuthRepository
-import com.hooman.einkaufszettel.domain.source.FirebaseService
+import com.hooman.einkaufszettel.domain.usecase.DeleteBillFromLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.DeleteBillFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllBillsByUserIdFromRemoteUseCase
-import com.hooman.einkaufszettel.feature.presentation.home.addBill
-
 import com.hooman.einkaufszettel.domain.usecase.GetAllBillsFromLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertBillToLocalUseCase
-import dev.gitlive.firebase.firestore.FirebaseFirestore
 import einkaufszettel.composeapp.generated.resources.Res
+import einkaufszettel.composeapp.generated.resources.bill_is_null
+import einkaufszettel.composeapp.generated.resources.bill_remove_local_fail
+import einkaufszettel.composeapp.generated.resources.bill_remove_remote_fail
+import einkaufszettel.composeapp.generated.resources.bill_remove_remote_success
+import einkaufszettel.composeapp.generated.resources.no_bills
+import einkaufszettel.composeapp.generated.resources.no_internet_error
 import einkaufszettel.composeapp.generated.resources.not_logged_in
-import einkaufszettel.composeapp.generated.resources.unknown_error
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -37,90 +33,142 @@ class HomeViewModel(
     private val getBillL: GetAllBillsFromLocalUseCase,
     private val getBillR: GetAllBillsByUserIdFromRemoteUseCase,
     private val insertBillL: InsertBillToLocalUseCase,
-    private val getBillByIdL: GetBillByIdFromLocalUseCase,
+    private val deleteBillL: DeleteBillFromLocalUseCase,
+    private val deleteBillR: DeleteBillFromRemoteUseCase,
     private val auth: AuthRepository,
     private val observer: ConnectivityObserver,
-    private val svc: FirebaseService
 ): ViewModel() {
     private val _state = MutableStateFlow(HomeState())
-    val state: StateFlow<HomeState> = _state
+    val state: StateFlow<HomeState> = _state.asStateFlow()
 
-   // init {
-        //viewModelScope.launch {
-            //runCatching { svc.requiredUserId() }
-          //  addBill(svc)
-        //    addProduct(svc)
-      //  }
-    //}
+    init {
+        observeBills()
+    }
 
-
-    fun observeBills(){
-        //Get Data from Local
+    private fun observeBills(){
         viewModelScope.launch {
             getBillL().collect { res ->
                 when(res){
-                    is Resource.Success -> {
-                        _state.value = _state.value.copy(
-                            bills = res.data!!,
-                            isLoading = false,
-                            errorMessage = null
-                        )
+                    is Resource.Success ->{
+                        if(res.data.isNullOrEmpty()){
+                            _state.value = _state.value.copy(isLoading = true)
+                            getBillFromRemote()
+                        }else{
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                error = null,
+                                bills = res.data
+                            )
+                        }
                     }
-                    is Resource.Error -> {
+                    is Resource.Loading ->{
                         _state.value = _state.value.copy(
-                            bills = emptyList(),
-                            isLoading = false,
-                            errorMessage = if(res.message == null)
-                                UiText.StringResourceId(Res.string.unknown_error)
-                            else
-                                UiText.DynamicString(res.message)
-                        )
-                    }
-                    is Resource.Loading<*> -> {
-                        _state.value = _state.value.copy(
-                            bills = emptyList(),
-                            errorMessage = null,
+                            error = null,
                             isLoading = true
+                        )
+                    }
+                    is Resource.Error ->{
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = UiText.DynamicString(res.message!!)
                         )
                     }
                 }
             }
         }
+    }
 
-        //Get Data from Remote
+    private fun getBillFromRemote() {
         viewModelScope.launch {
-            observer.isConnected
-                .onStart { emit(false)}
-                .distinctUntilChanged()
-                .collect { online ->
-                    if(!online) return@collect
-                    val uid = auth.getCurrentUserId()
-                    if(uid == null){
+            val online = observer.isConnected.first()
+            if(!online){
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = UiText.StringResourceId(Res.string.no_internet_error)
+                )
+                return@launch
+            }
+            val userId = auth.getCurrentUserId()
+            if (userId.isNullOrEmpty()) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = UiText.StringResourceId(Res.string.not_logged_in)
+                )
+                return@launch
+            }
+            getBillR(userId).collect { res ->
+                when (res) {
+                    is Resource.Success -> {
+                        insertBillIntoLocal(res.data)
+                    }
+
+                    is Resource.Loading -> {}
+
+                    is Resource.Error -> {
                         _state.value = _state.value.copy(
                             isLoading = false,
-                            errorMessage = UiText.StringResourceId(Res.string.not_logged_in)
+                            error = UiText.DynamicString(res.message!!)
                         )
-                        return@collect
                     }
-                    getBillR(uid).collect { res ->
-                        when(res){
-                            is Resource.Success -> {
-                                res.data?.forEach { bill ->
-                                    insertBillL(bill).collect {  }
-                                }
-                            }
-                            is Resource.Error -> {
-                                _state.value = _state.value.copy(
-                                    errorMessage = if(res.message == null)
-                                        UiText.StringResourceId(Res.string.unknown_error)
-                                    else UiText.DynamicString(res.message)
-                                )
-                            }
-                            is Resource.Loading -> Unit
-                        }
-                    }
-
                 }
+            }
+        }
+    }
+
+    private fun insertBillIntoLocal(bills: List<Bill>?){
+        viewModelScope.launch {
+            if(bills.isNullOrEmpty()){
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = UiText.StringResourceId(Res.string.no_bills)
+                )
+                return@launch
+            }
+            bills.forEach { bill ->
+                val result = insertBillL(bill)
+                if(result is Resource.Error){
+                    print("Error in inserting bill into local- ${result.message}")
+                }
+            }
+        }
+    }
+
+    fun deleteBill(bill: Bill){
+        _state.value = _state.value.copy(
+            isLoading = true
+        )
+
+        viewModelScope.launch {
+            val localResult = deleteBillL(bill)
+
+            if(localResult is Resource.Error){
+                _state.value = _state.value.copy(
+                    error = UiText.StringResourceId(Res.string.bill_remove_local_fail)
+                )
+            }
+
+            val online = observer.isConnected.first()
+
+            if(!online){
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = UiText.StringResourceId(Res.string.not_logged_in)
+                )
+                return@launch
+            }
+            val remoteResult = deleteBillR(bill.id)
+
+            if(remoteResult is Resource.Error){
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = UiText.StringResourceId(Res.string.bill_remove_remote_fail)
+                )
+            }
+
+            _state.value = _state.value.copy(
+                isLoading = false,
+                error = UiText.StringResourceId(Res.string.bill_remove_remote_success)
+            )
         }
     }
 }

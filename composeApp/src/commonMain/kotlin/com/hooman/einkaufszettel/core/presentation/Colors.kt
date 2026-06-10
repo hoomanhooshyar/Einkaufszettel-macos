@@ -18,6 +18,13 @@ val backgroundGradient = Brush.verticalGradient(
     )
 )
 
+val backgroundCardGradient = Brush.verticalGradient(
+    colors = listOf(
+        Color(0xFF025C7A),
+        Color(0xFF05F7E3)
+    )
+)
+
 val greenGradient = Brush.horizontalGradient(
     colors = listOf(
         Color(0XFF5FE36D),

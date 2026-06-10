@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import com.hooman.einkaufszettel.core.presentation.blackColor
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 
+/**
+ * LS = Login and Sign-up
+ */
 @Composable
 fun LSButton(
     text: String,

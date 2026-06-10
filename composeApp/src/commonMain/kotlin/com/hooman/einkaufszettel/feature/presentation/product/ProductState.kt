@@ -6,5 +6,5 @@ import com.hooman.einkaufszettel.domain.model.Product
 data class ProductState(
     val products: List<Product> = emptyList(),
     val isLoading: Boolean = true,
-    val errorMessage: UiText? = null
+    val error: UiText? = null
 )

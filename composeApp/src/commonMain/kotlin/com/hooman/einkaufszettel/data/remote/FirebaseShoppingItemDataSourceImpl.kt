@@ -13,7 +13,9 @@ class FirebaseShoppingItemDataSourceImpl(
 ): FirebaseShoppingItemDataSource {
     override suspend fun insertItem(shoppingItem: ShoppingItem) {
         svc.io {
-            svc.shoppingItemsCol(shoppingItem.billId).add(ShoppingItemDto.fromDomain(shoppingItem))
+            svc.shoppingItemsCol(shoppingItem.billId)
+                .document(shoppingItem.id)
+                .set(ShoppingItemDto.fromDomain(shoppingItem))
         }
     }
 
@@ -28,9 +30,9 @@ class FirebaseShoppingItemDataSourceImpl(
             }
     }
 
-    override suspend fun deleteShoppingItem(billId: String, itemId: String) {
+    override suspend fun deleteShoppingItem(billId: String, shoppingItemId: String) {
         svc.io {
-            svc.shoppingItemsCol(billId).document(itemId).delete()
+            svc.shoppingItemsCol(billId).document(shoppingItemId).delete()
         }
     }
 
@@ -42,5 +44,29 @@ class FirebaseShoppingItemDataSourceImpl(
                     doc.data<ShoppingItemDto>().toDomain(doc.id)
                 }
             }
+    }
+
+    override suspend fun updateShoppingItemCheckStatus(
+        billId: String,
+        itemId: String,
+        isChecked: Boolean
+    ) {
+        svc.io {
+            svc.shoppingItemsCol(billId)
+                .document(itemId)
+                .update("isChecked", isChecked)
+        }
+    }
+
+    override suspend fun updateShoppingItemCount(
+        billId: String,
+        itemId: String,
+        itemCount: Int
+    ) {
+        svc.io {
+            svc.shoppingItemsCol(billId)
+                .document(itemId)
+                .update(mapOf("itemCount" to itemCount))
+        }
     }
 }

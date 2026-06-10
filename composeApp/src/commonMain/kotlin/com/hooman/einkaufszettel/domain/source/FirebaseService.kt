@@ -15,6 +15,8 @@ interface FirebaseService {
     fun productsCol(): CollectionReference
     fun shoppingItemsCol(billId: String): CollectionReference
 
+    fun productAssetsCol(): CollectionReference
+
     suspend fun <T> io(block: suspend () -> T): T
     suspend fun requiredUserId(): String
     suspend fun <T> safe(block: suspend () -> T): Result<T>

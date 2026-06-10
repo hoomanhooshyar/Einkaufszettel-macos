@@ -9,7 +9,7 @@ class DeleteProductFromLocalUseCase(
     private val repository: LocalRepository
 
 ) {
-    suspend operator fun invoke(product: Product): Flow<Resource<Unit>> {
+    suspend operator fun invoke(product: Product): Resource<Unit> {
         return repository.deleteProduct(product)
     }
 }

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class DeleteShoppingItemFromLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(shoppingItem: ShoppingItem,billId: String): Flow<Resource<Unit>> {
-        return repository.deleteShoppingItem(shoppingItem,billId)
+    suspend operator fun invoke(shoppingItemId: String):Resource<Unit> {
+        return repository.deleteShoppingItem(shoppingItemId)
     }
 }

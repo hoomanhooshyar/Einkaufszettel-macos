@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.flow
 class FirebaseProductRepositoryImpl(
     private val dataSource: FirebaseProductDataSource
 ): FirebaseProductRepository {
-    override fun insertProduct(product: Product): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    override suspend fun insertProduct(product: Product): Resource<Unit>{
+
+        return try {
             dataSource.insertProduct(product)
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         } catch (e: Exception) {
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
@@ -43,6 +43,17 @@ class FirebaseProductRepositoryImpl(
 
     }
 
+    override fun getProductIcons(): Flow<Resource<List<String>>> = flow {
+        emit(Resource.Loading())
+        try {
+            dataSource.getProductIcon().collect { icons ->
+                emit(Resource.Success(icons))
+            }
+        }catch (e: Exception){
+            emit(Resource.Error(e.message))
+        }
+    }
+
     override fun getProductById(productId: String): Flow<Resource<Product>> = flow {
        emit(Resource.Loading())
         try {
@@ -54,13 +65,12 @@ class FirebaseProductRepositoryImpl(
         }
     }
 
-    override fun deleteProduct(productId: String): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    override suspend fun deleteProduct(productId: String):Resource<Unit> {
+        return try {
             dataSource.deleteProduct(productId)
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         }catch (e: Exception){
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 }

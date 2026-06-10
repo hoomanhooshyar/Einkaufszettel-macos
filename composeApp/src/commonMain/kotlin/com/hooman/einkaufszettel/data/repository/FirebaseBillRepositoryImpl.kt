@@ -12,14 +12,12 @@ import kotlinx.coroutines.flow.map
 class FirebaseBillRepositoryImpl(
     private val dataSource: FirebaseBillDataSource
 ): FirebaseBillRepository {
-    override fun insertBill(bill: Bill): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-
-        try {
+    override suspend fun insertBill(bill: Bill): Resource<Unit> {
+        return try {
             dataSource.insertBill(bill)
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         } catch (e: Exception) {
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
 
     }
@@ -48,13 +46,12 @@ class FirebaseBillRepositoryImpl(
 
     }
 
-    override fun deleteBill(billId: String): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    override suspend fun deleteBill(billId: String): Resource<Unit> {
+        return try {
             dataSource.deleteBill(billId)
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         } catch (e: Exception) {
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 }

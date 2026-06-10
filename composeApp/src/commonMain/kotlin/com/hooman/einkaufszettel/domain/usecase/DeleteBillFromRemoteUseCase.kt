@@ -8,7 +8,7 @@ class DeleteBillFromRemoteUseCase(
     private val repository: FirebaseBillRepository
 
 ) {
-    suspend operator fun invoke(billId: String): Flow<Resource<Unit>> {
+    suspend operator fun invoke(billId: String):Resource<Unit> {
         return repository.deleteBill(billId)
     }
 }

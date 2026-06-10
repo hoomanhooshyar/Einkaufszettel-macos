@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class InsertBillToLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(bill: Bill): Flow<Resource<Unit>> {
+    suspend operator fun invoke(bill: Bill):Resource<Unit> {
         return repository.insertBill(bill)
     }
 }

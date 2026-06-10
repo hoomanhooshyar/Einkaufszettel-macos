@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class InsertShoppingItemToLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(shoppingItem: ShoppingItem,billId: String): Flow<Resource<Unit>> {
+    suspend operator fun invoke(shoppingItem: ShoppingItem,billId: String):Resource<Unit> {
         return repository.insertShoppingItem(
             shoppingItem = shoppingItem,
             billId = billId

@@ -61,6 +61,13 @@ fun MainScreen(
 
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
 
+    val isLogin by viewModel.loginState.collectAsState()
+
+
+    LaunchedEffect(Unit){
+        viewModel.checkLogin()
+    }
+
 
 
     Scaffold(
@@ -105,7 +112,7 @@ fun MainScreen(
                         if(currentRoute == Routes.Home::class.qualifiedName){
                             navController.navigate(Routes.CreateList)
                         }else if(currentRoute == Routes.Products::class.qualifiedName){
-                            navController.navigate(Routes.ListDetails("1"))
+                            navController.navigate(Routes.AddProduct())
                         }
 
                     },
@@ -125,16 +132,13 @@ fun MainScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState)}
     ) { padding ->
+
         AppNavGraph(
             navController = navController,
             contentPadding = padding,
-            snackBarHostState = snackBarHostState
+            snackBarHostState = snackBarHostState,
+            isLogin = isLogin
         )
 
-        //LoginScreenRoot(
-            //navController = rememberNavController(),
-            //contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
-          //  snackBarHostState = snackBarHostState
-        //)
     }
 }

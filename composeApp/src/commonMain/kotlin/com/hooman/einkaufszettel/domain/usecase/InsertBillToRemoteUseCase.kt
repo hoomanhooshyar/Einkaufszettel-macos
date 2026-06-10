@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class InsertBillToRemoteUseCase(
     private val repository: FirebaseBillRepository
 ) {
-    suspend operator fun invoke(bill: Bill): Flow<Resource<Unit>> {
+    suspend operator fun invoke(bill: Bill): Resource<Unit> {
         return repository.insertBill(bill)
     }
 }

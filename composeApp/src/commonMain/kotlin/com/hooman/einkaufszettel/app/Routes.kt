@@ -33,4 +33,9 @@ interface Routes {
     @Serializable
     data class ListDetails(val billId: String): Routes
 
+    @Serializable
+    data class AddShoppingItem(val billId: String): Routes
+
+    @Serializable
+    data class AddProduct(val productId: String? = null): Routes
 }

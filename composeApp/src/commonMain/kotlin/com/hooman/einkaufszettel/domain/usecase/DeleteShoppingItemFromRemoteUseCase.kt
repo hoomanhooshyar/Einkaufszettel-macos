@@ -7,10 +7,11 @@ import kotlinx.coroutines.flow.Flow
 class DeleteShoppingItemFromRemoteUseCase(
     private val repository: FirebaseShoppingItemRepository
 ) {
-    suspend operator fun invoke(shoppingItemId: String, billId: String): Flow<Resource<Unit>> {
+    suspend operator fun invoke( billId: String,shoppingItemId: String): Resource<Unit> {
         return repository.deleteShoppingItem(
+
             billId = billId,
-            itemId = shoppingItemId
+            shoppingItemId = shoppingItemId,
         )
     }
 }

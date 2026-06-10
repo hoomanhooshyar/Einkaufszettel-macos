@@ -7,6 +7,7 @@ interface FirebaseProductDataSource {
     fun getAllProductsByUserId(userId: String): Flow<List<Product>>
     fun getProductByName(name: String): Flow<List<Product>>
     fun getProductById(productId: String): Flow<Product>
+    fun getProductIcon(): Flow<List<String>>
     suspend fun insertProduct(product: Product)
     suspend fun deleteProduct(productId: String)
 }

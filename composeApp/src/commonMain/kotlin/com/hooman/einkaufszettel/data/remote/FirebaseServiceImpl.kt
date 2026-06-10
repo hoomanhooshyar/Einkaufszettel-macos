@@ -20,6 +20,7 @@ class FirebaseServiceImpl() : FirebaseService {
 
 
     override fun shoppingItemsCol(billId: String): CollectionReference = billsCol().document(billId).collection("shoppingItems")
+    override fun productAssetsCol(): CollectionReference = db.collection("product_icon")
 
     override suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) { block() }
 

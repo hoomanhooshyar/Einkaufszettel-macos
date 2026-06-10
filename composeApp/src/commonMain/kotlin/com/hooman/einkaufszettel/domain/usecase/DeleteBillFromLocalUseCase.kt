@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 class DeleteBillFromLocalUseCase(
     private val repository: LocalRepository
 ) {
-    suspend operator fun invoke(bill: Bill): Flow<Resource<Unit>> {
+    suspend operator fun invoke(bill: Bill): Resource<Unit> {
         return repository.deleteBill(bill)
     }
 }

@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,6 +30,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.hooman.einkaufszettel.core.presentation.AppDimens
 import com.hooman.einkaufszettel.core.presentation.blackColor
 import com.hooman.einkaufszettel.core.presentation.greenColor
 import com.hooman.einkaufszettel.core.presentation.whiteColor
@@ -37,6 +40,7 @@ import com.hooman.einkaufszettel.domain.model.Bill
 fun HomeItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    onDeleteClick: (Bill) -> Unit,
     bill: Bill,
     background: Brush,
     icon: ImageVector
@@ -52,7 +56,7 @@ fun HomeItem(
     Card(
         modifier = modifier
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(32.dp),
+        shape = RoundedCornerShape(AppDimens.cardRadius),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
         ),
@@ -72,7 +76,7 @@ fun HomeItem(
                     modifier = Modifier.padding(8.dp),
                     text = bill.billDate.toString(),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = blackColor
+                    color = whiteColor
                 )
                 Text(
                     modifier = Modifier.padding(8.dp),
@@ -85,7 +89,7 @@ fun HomeItem(
                     modifier = Modifier.padding(8.dp),
                     text = items,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = blackColor
+                    color = whiteColor
                 )
 
             }
@@ -105,6 +109,22 @@ fun HomeItem(
                     modifier = Modifier
                         .padding(8.dp),
                     tint = blackColor
+                )
+            }
+
+            IconButton(
+                modifier = Modifier
+                    .padding(
+                        top = AppDimens.spacingLarge,
+                        end = AppDimens.spacingMedium
+                    )
+                    .align(Alignment.TopEnd),
+                onClick = {onDeleteClick(bill)}
+            ){
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = whiteColor
                 )
             }
 

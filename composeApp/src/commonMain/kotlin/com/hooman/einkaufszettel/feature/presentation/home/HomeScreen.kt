@@ -1,8 +1,6 @@
 package com.hooman.einkaufszettel.feature.presentation.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,24 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Celebration
-import androidx.compose.material.icons.filled.Checkroom
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,69 +24,53 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.room.util.TableInfo
+import androidx.navigation.NavHostController
+import com.hooman.einkaufszettel.app.Routes
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
-import com.hooman.einkaufszettel.core.presentation.darkYellowColor
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
 import com.hooman.einkaufszettel.core.presentation.purpleGradient
 import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.domain.model.Bill
-import com.hooman.einkaufszettel.domain.model.PurchaseType
-import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import com.hooman.einkaufszettel.feature.presentation.home.components.HomeItem
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.gesamt
 import einkaufszettel.composeapp.generated.resources.no_bills
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import kotlin.random.Random
 
 @Composable
 fun HomeScreenRoot(
     viewModel: HomeViewModel = koinViewModel(),
     contentPadding: PaddingValues,
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    navController: NavHostController
 ) {
 
+    val state by viewModel.state.collectAsState()
 
-
-
-
-    LaunchedEffect(Unit){
-        viewModel.observeBills()
-    }
-
-    if(viewModel.state.collectAsState().value.errorMessage != null){
-        val cs = rememberCoroutineScope()
-        val error: String = viewModel.state.collectAsState().value.errorMessage!!.asString()
-        cs.launch {
-            snackBarHostState.showSnackbar(
-                error,
-                duration = SnackbarDuration.Long
-            )
+    if(state.error != null){
+        val error: String = state.error!!.asString()
+        LaunchedEffect(error){
+            snackBarHostState.showSnackbar(error, duration = SnackbarDuration.Short)
         }
-
     }
 
     HomeScreen(
         contentPadding = contentPadding,
         background = backgroundGradient,
-        bills = viewModel.state.collectAsState().value.bills
+        bills = state.bills,
+        navController = navController,
+        onDelete = {
+            viewModel.deleteBill(it)
+        }
     )
 }
 
@@ -112,7 +80,9 @@ fun HomeScreenRoot(
 fun HomeScreen(
     contentPadding: PaddingValues,
     background: Brush,
-    bills: List<Bill> = emptyList()
+    bills: List<Bill> = emptyList(),
+    navController: NavHostController,
+    onDelete: (Bill) -> Unit
 ) {
 
     val priceState: MutableState<String> = remember {
@@ -184,7 +154,12 @@ fun HomeScreen(
                             bill = bill,
                             background = backgroundColor,
                             icon = billIcon,
-                            onClick = {}
+                            onClick = {
+                                navController.navigate(Routes.ListDetails(bill.id))
+                            },
+                            onDeleteClick = {
+                                onDelete(it)
+                            }
                         )
                     }
                 }

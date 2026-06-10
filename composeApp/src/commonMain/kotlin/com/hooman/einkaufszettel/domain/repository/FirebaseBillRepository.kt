@@ -6,8 +6,8 @@ import com.hooman.einkaufszettel.domain.model.Bill
 import kotlinx.coroutines.flow.Flow
 
 interface FirebaseBillRepository {
-    fun insertBill(bill: Bill): Flow<Resource<Unit>>
+    suspend fun insertBill(bill: Bill): Resource<Unit>
     fun getAllBillsByUserId(userId: String): Flow<Resource<List<Bill>>>
     fun getBillById(billId: String): Flow<Resource<Bill>>
-    fun deleteBill(billId: String): Flow<Resource<Unit>>
+    suspend fun deleteBill(billId: String): Resource<Unit>
 }

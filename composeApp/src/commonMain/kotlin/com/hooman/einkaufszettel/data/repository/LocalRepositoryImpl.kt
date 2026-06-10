@@ -1,13 +1,17 @@
 package com.hooman.einkaufszettel.data.repository
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.data.local.dao.AppDao
+import com.hooman.einkaufszettel.data.local.entity.ProductEntity
 import com.hooman.einkaufszettel.data.mapper.toDomain
 import com.hooman.einkaufszettel.data.mapper.toEntity
 import com.hooman.einkaufszettel.data.mapper.toProduct
 import com.hooman.einkaufszettel.data.mapper.toProductEntity
+import com.hooman.einkaufszettel.data.mapper.toShoppingItem
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.Product
+import com.hooman.einkaufszettel.domain.model.ShoppingDetails
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import com.hooman.einkaufszettel.domain.repository.LocalRepository
 import kotlinx.coroutines.flow.Flow
@@ -39,49 +43,44 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun insertBill(bill: Bill): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    override suspend fun insertBill(bill: Bill): Resource<Unit>  {
+        return try {
             dao.insertBill(bill.toEntity())
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         }catch (e: Exception){
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
-    override fun deleteBill(bill: Bill): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    override suspend fun deleteBill(bill: Bill): Resource<Unit> {
+        return try {
             dao.deleteBill(bill.toEntity())
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         }catch (e: Exception){
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
-    override fun insertShoppingItem(
+    override suspend fun insertShoppingItem(
         shoppingItem: ShoppingItem,
         billId: String
-    ): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    ):Resource<Unit> {
+        return try {
             dao.insertShoppingItem(shoppingItem.toEntity())
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         }catch (e: Exception){
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
-    override fun deleteShoppingItem(
-        shoppingItem: ShoppingItem,
-        billId: String
-    ): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
-            dao.deleteShoppingItem(shoppingItem.toEntity())
-            emit(Resource.Success(Unit))
+    override suspend fun deleteShoppingItem(
+        shoppingItemId: String
+    ):Resource<Unit>{
+        return try {
+            dao.deleteShoppingItem(shoppingItemId = shoppingItemId)
+            Resource.Success(Unit)
         } catch (e: Exception) {
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
@@ -89,7 +88,10 @@ class LocalRepositoryImpl(
         emit(Resource.Loading())
         try {
             dao.getAllProducts().collect { products ->
-                emit(Resource.Success(data = products.map { it.toProduct() }))
+                emit(Resource.Success(data = products.map {
+                    it.toProduct()
+                }
+                ))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.message))
@@ -118,23 +120,103 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun insertProduct(product: Product): Flow<Resource<Unit>> = flow{
+    override fun getProductIcons(): Flow<Resource<List<String>>> = flow {
         emit(Resource.Loading())
         try {
-            dao.insertProduct(product.toProductEntity())
-            emit(Resource.Success(Unit))
-        } catch (e: Exception) {
+
+        }catch (e: Exception){
             emit(Resource.Error(e.message))
         }
     }
 
-    override fun deleteProduct(product: Product): Flow<Resource<Unit>> = flow {
+    override fun getAllShoppingItemsByBillId(billId: String): Flow<Resource<List<ShoppingItem>>> = flow{
         emit(Resource.Loading())
         try {
-            dao.deleteProduct(product.toProductEntity())
-            emit(Resource.Success(Unit))
-        } catch (e: Exception) {
+            dao.getShoppingItemsByBillId(billId).collect { shoppingItems ->
+                emit(Resource.Success(data = shoppingItems.map { it.toShoppingItem() }))
+            }
+        }catch (e: Exception){
             emit(Resource.Error(e.message))
         }
     }
+
+    override fun getAvailableProductsForShoppingItem(billId: String): Flow<Resource<List<Product>>> = flow{
+        emit(Resource.Loading())
+        try {
+            dao.getAvailableProductsForShoppingItem(billId).collect { products ->
+                emit(Resource.Success(data = products.map { it.toProduct() }))
+            }
+        }catch (e: Exception){
+            emit(Resource.Error(e.message))
+        }
+    }
+
+    override fun getCheckedProductsForShoppingItem(billId: String): Flow<Resource<List<String>>> = flow{
+        emit(Resource.Loading())
+        try {
+            dao.getCheckedProductsForShoppingItem(billId).collect { products ->
+                emit(Resource.Success(data = products))
+            }
+        }catch (e: Exception){
+            emit(Resource.Error(e.message))
+        }
+
+    }
+
+    override fun getProductsForShoppingItem(billId: String): Flow<Resource<List<ShoppingDetails>>> = flow{
+        emit(Resource.Loading())
+        try {
+            dao.getProductsForShoppingItem(billId).collect { shoppingDetails ->
+                emit(Resource.Success(data = shoppingDetails))
+            }
+        }catch (e: Exception){
+            emit(Resource.Error(e.message))
+        }
+    }
+
+    override suspend fun updateShoppingItemCheckStatus(
+        shoppingItemId: String,
+        isChecked: Boolean
+    ):Resource<Unit>{
+        return try {
+            dao.updateShoppingItemCheckStatus(shoppingItemId, isChecked)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun updateSHoppingItemCount(
+        shoppingItemId: String,
+        itemCount: Int
+    ):Resource<Unit> {
+        return try {
+            dao.updateSHoppingItemCount(shoppingItemId, itemCount)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+
+    }
+
+
+    override suspend fun insertProduct(product: Product):Resource<Unit>{
+        return try {
+            dao.insertProduct(product.toProductEntity())
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun deleteProduct(product: Product):Resource<Unit> {
+        return try {
+            dao.deleteProduct(product.toProductEntity())
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message)
+        }
+    }
+
+
 }

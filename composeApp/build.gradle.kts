@@ -95,6 +95,8 @@ kotlin {
             implementation(libs.firebase.analytics.get())
             implementation(libs.firebase.auth.ktx)
             implementation(libs.firebase.firestore.ktx)
+
+            implementation(libs.play.services.auth)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -105,7 +107,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
-
+            implementation(compose.materialIconsExtended)
             implementation(libs.compose.icons.core)
             implementation(libs.compose.icons.extended)
 
@@ -126,6 +128,11 @@ kotlin {
             implementation(libs.firebase.firestore)
 
             implementation(libs.kotlinx.datetime)
+
+
+
+            api(libs.datastore)
+            api(libs.datastore.preferences)
 
 
 

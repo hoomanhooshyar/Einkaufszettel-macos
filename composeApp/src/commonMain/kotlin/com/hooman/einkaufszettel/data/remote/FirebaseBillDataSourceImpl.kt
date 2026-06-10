@@ -13,7 +13,17 @@ class FirebaseBillDataSourceImpl(
 ): FirebaseBillDataSource {
     override suspend fun insertBill(bill: Bill) {
         svc.io {
-            svc.billsCol().add(BillDto.fromDomain(bill))
+            try {
+                println("🟢 DEBUG: Try to save to Firestore with ID: ${bill.id}")
+                svc.billsCol()
+                    .document(bill.id)
+                    .set(BillDto.fromDomain(bill))
+                println("🟢 DEBUG: Successfully saved to Firestore!")
+            }catch (e: Exception){
+                println("🔴 DEBUG: Firebase CRASHED: ${e.message}")
+                e.printStackTrace()
+            }
+
         }
     }
 

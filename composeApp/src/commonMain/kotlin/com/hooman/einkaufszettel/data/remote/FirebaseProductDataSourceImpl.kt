@@ -6,6 +6,7 @@ import com.hooman.einkaufszettel.domain.source.FirebaseProductDataSource
 import com.hooman.einkaufszettel.domain.source.FirebaseService
 import dev.gitlive.firebase.firestore.where
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class FirebaseProductDataSourceImpl(
@@ -46,11 +47,24 @@ class FirebaseProductDataSourceImpl(
             }
     }
 
+    override fun getProductIcon(): Flow<List<String>> = flow {
+        try {
+            val snapshot = svc.productAssetsCol()
+                .document("icon")
+                .get()
+            val icons = snapshot.get("urls") as? List<String> ?: emptyList()
+            emit(icons)
+        }catch (e: Exception){
+            throw e
+        }
+    }
 
 
     override suspend fun insertProduct(product: Product) {
         svc.io {
-            svc.productsCol().add(ProductDto.fromDomain(product))
+            svc.productsCol()
+                .document(product.id)
+                .set(ProductDto.fromDomain(product))
         }
     }
 

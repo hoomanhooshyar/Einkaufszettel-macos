@@ -10,13 +10,12 @@ import kotlinx.coroutines.flow.flow
 class FirebaseShoppingItemRepositoryImpl(
     private val dataSource: FirebaseShoppingItemDataSource
 ): FirebaseShoppingItemRepository {
-    override fun insertShoppingItem(shoppingItem: ShoppingItem): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
+    override suspend fun insertShoppingItem(shoppingItem: ShoppingItem):Resource<Unit> {
+        return try {
             dataSource.insertItem(shoppingItem)
-            emit(Resource.Success(Unit))
+            Resource.Success(Unit)
         } catch (e: Exception) {
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
@@ -31,16 +30,15 @@ class FirebaseShoppingItemRepositoryImpl(
         }
     }
 
-    override fun deleteShoppingItem(
+    override suspend fun deleteShoppingItem(
         billId: String,
-        itemId: String
-    ): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
-            dataSource.deleteShoppingItem(billId, itemId)
-            emit(Resource.Success(Unit))
+        shoppingItemId: String
+    ): Resource<Unit> {
+        return try {
+            dataSource.deleteShoppingItem(billId, shoppingItemId)
+            Resource.Success(Unit)
         } catch (e: Exception) {
-            emit(Resource.Error(e.message))
+            Resource.Error(e.message)
         }
     }
 
@@ -52,6 +50,32 @@ class FirebaseShoppingItemRepositoryImpl(
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.message))
+        }
+    }
+
+    override suspend fun updateShoppingItemCheckStatus(
+        billId: String,
+        itemId: String,
+        isChecked: Boolean
+    ):Resource<Unit> {
+        return try {
+            dataSource.updateShoppingItemCheckStatus(billId, itemId, isChecked)
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun updateShoppingItemCount(
+        billId: String,
+        itemId: String,
+        itemCount: Int
+    ): Resource<Unit> {
+        return try {
+            dataSource.updateShoppingItemCount(billId, itemId, itemCount)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
         }
     }
 }

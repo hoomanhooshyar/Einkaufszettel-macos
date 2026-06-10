@@ -8,5 +8,5 @@ data class HomeState(
     val searchResult: List<Bill> = emptyList(),
     val bills: List<Bill> = emptyList(),
     val isLoading: Boolean = true,
-    val errorMessage: UiText? = null
+    val error: UiText? = null
 )

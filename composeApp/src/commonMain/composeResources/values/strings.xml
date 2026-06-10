@@ -8,19 +8,64 @@
     <string name="server_error">Server error</string>
     <string name="serialization_error">Serialization error</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="google_login_fail">Fail to connect to Google Account</string>
+    <string name="fail_in_login">Fail to Login</string>
+    <string name="delete_product_fail">Delete Product From Local Fail</string>
+    <string name="delete_product_remote_fail">Delete Product From Remote Fail</string>
+    <string name="no_shopping_item">No Shopping Item found</string>
+    <string name="delete_shopping_item_local_fail">Delete Item From Local Fail</string>
+    <string name="delete_shopping_item_server_fail">Delete Item From Server Fail</string>
+    <string name="update_fail">Update has been failed</string>
+    <string name="bill_remove_local_fail">Bill has been not deleted from Local</string>
+    <string name="bill_remove_local_success">Bill has been removed from Local</string>
+    <string name="bill_remove_remote_fail">Bill has been not deleted from Server</string>
+    <string name="bill_remove_remote_success">Bill has been removed from Server</string>
+
     <string name="product_delete_from_remote">Product deleted from server</string>
     <string name="product_delete_from_local">Product deleted from local database"</string>
-    <!--  Information Strings  -->
-    <string name="gesamt">Gesamt:</string>
+    <string name="bill_name_empty_error">Bill name is empty</string>
+    <string name="bill_is_null">Bill is null</string>
+    <string name="user_is_not_logged_in">User is not logged in</string>
+    <string name="bill_added_to_remote_successfully">Bill added into Remote successfully</string>
+    <string name="item_added_successfully">Item added successfully</string>
+    <string name="item_deleted_from_local_successfully">Item deleted from local successfully</string>
+    <string name="item_deleted_from_remote_successfully">Item deleted from remote successfully</string>
+    <string name="data_save_just_in_local">Item has been saved just in Local</string>
+    <string name="data_removed_just_from_local">Item has been removed just from Local</string>
+    <string name="data_removed_successfully">Item has been removed successfully</string>
     <string name="no_bills">You don't have any bills</string>
     <string name="no_products">You don't have any products</string>
     <string name="not_logged_in">You are not logged in</string>
+    <string name="product_added_successfully">Product added successfully</string>
+    <string name="fill_all_fields">Fill all fields</string>
+    <string name="get_data_from_server">Downloading data from Server</string>
+
+    <string name="gesamt">Gesamt:</string>
     <string name="email">E-mail</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
     <string name="google_sign_in">Sign in with Google</string>
     <string name="apple_sign_in">Sign in with Apple</string>
+    <string name="bill_name">Bill Name</string>
+    <string name="enter_bill_name">Enter the Bill name</string>
+    <string name="bill_type">Bill Type</string>
+    <string name="enter_bill_type">Enter the Bill type</string>
+    <string name="date">Date</string>
+    <string name="created_date">Created Date</string>
+    <string name="count_of_items">Count of items</string>
+    <string name="add_item">Add New Item</string>
+    <string name="select_icon">Select Icon</string>
+    <string name="product_name">Product Name</string>
+    <string name="product_price">Product Price</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
 
-
+    <!--  Type Values  -->
+    <string name="supermarket">Supermarket</string>
+    <string name="party">Party</string>
+    <string name="house">House</string>
+    <string name="friends">Friends</string>
+    <string name="cloth">Cloth</string>
+    <string name="other">Other</string>
 </resources>
