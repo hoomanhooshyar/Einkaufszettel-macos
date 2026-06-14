@@ -20,6 +20,7 @@
     <string name="bill_remove_local_success">Bill has been removed from Local</string>
     <string name="bill_remove_remote_fail">Bill has been not deleted from Server</string>
     <string name="bill_remove_remote_success">Bill has been removed from Server</string>
+    <string name="shopping_item_is_disabled">You can't update this item</string>
 
     <string name="product_delete_from_remote">Product deleted from server</string>
     <string name="product_delete_from_local">Product deleted from local database"</string>

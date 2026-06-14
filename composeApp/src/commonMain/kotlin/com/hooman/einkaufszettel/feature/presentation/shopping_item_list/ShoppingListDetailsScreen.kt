@@ -28,12 +28,12 @@ import com.hooman.einkaufszettel.core.presentation.backgroundCardGradient
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
+import com.hooman.einkaufszettel.core.presentation.premiumGrayBlueGradient
 import com.hooman.einkaufszettel.core.presentation.purpleGradient
 import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.ShoppingDetails
-import com.hooman.einkaufszettel.feature.presentation.components.CECheckListItem
 import com.hooman.einkaufszettel.feature.presentation.shopping_item_list.components.AddedShoppingItem
 import com.hooman.einkaufszettel.feature.presentation.shopping_item_list.components.Header
 import einkaufszettel.composeapp.generated.resources.Res
@@ -43,7 +43,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ShoppingListDetailsScreenRoot(
-    viewModel: ShoppingListDetailsViewModel = koinViewModel(),
+    viewModel:  ShoppingListDetailsViewModel = koinViewModel(),
     snackBarHostState: SnackbarHostState,
     navController: NavHostController,
     onBack: () -> Unit,
@@ -78,8 +78,11 @@ fun ShoppingListDetailsScreenRoot(
         onCountChange = {shoppingItemId, count ->
             viewModel.updateShoppingItemCount(shoppingItemId, count)
         },
-        onCheckedChange = { shoppingItemId, isChecked ->
-            viewModel.updateShoppingItemCheckStatus(shoppingItemId, isChecked)
+        onDeleteClick = { shoppingItemId ->
+            viewModel.onDeleteClick(shoppingItemId)
+        },
+        onCheckedChange = {shoppingItemId, isChecked ->
+            viewModel.onUpdateCheckedChange(shoppingItemId, isChecked)
         }
     )
 }
@@ -91,6 +94,7 @@ fun ShoppingListDetailsScreen(
     shoppingDetailsList: List<ShoppingDetails>?,
     onClick: () -> Unit,
     onCountChange: (String, Int) -> Unit,
+    onDeleteClick: (String) -> Unit,
     onCheckedChange: (String, Boolean) -> Unit
 ) {
     Column(
@@ -129,20 +133,28 @@ fun ShoppingListDetailsScreen(
                     key = { _, shoppingDetails -> shoppingDetails.shoppingItemId}
                 ) { index, shoppingDetails ->
                     val backgroundColor = brushes[index % brushes.size]
+                    val (plusBrush, minusBrush) = when(backgroundColor){
+                        greenGradient -> Pair(redGradient, orangeGradient)
+                        orangeGradient -> Pair(purpleGradient, greenGradient)
+                        purpleGradient -> Pair(greenGradient, redGradient)
+                        else -> Pair(redGradient, orangeGradient)
+                    }
                     AddedShoppingItem(
                         item = shoppingDetails,
-                        background = backgroundColor,
-                        modifier = Modifier.padding(
-                            vertical = AppDimens.spacingSmall,
-                            horizontal = AppDimens.spacingMedium
-                        ),
-                        onCheckedChange = { shoppingItemId ,isChecked ->
-                            onCheckedChange(shoppingItemId,isChecked)
+                        background = if(!shoppingDetails.isChecked) premiumGrayBlueGradient else backgroundColor,
+                        modifier = Modifier.padding(AppDimens.spacingSmall),
+                        plusColor = if(shoppingDetails.isChecked) premiumGrayBlueGradient else plusBrush,
+                        minusColor = if(shoppingDetails.isChecked) premiumGrayBlueGradient else minusBrush,
+                        onDeleteClick = { shoppingItemId ->
+                            onDeleteClick(shoppingItemId)
                         },
                         onCountChange = { shoppingItemId, count ->
                             onCountChange(shoppingItemId,count)
                         },
-                        isChecked = shoppingDetails.isChecked
+                        isChecked = shoppingDetails.isChecked,
+                        onCheckedChange = { shoppingItemId, isChecked ->
+                            onCheckedChange(shoppingItemId, isChecked)
+                        }
                     )
                 }
             }

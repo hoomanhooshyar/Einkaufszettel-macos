@@ -16,6 +16,8 @@ import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetProductForShoppingItemFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetShoppingItemByBillIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInRemoteUseCase
 import einkaufszettel.composeapp.generated.resources.Res
@@ -26,6 +28,7 @@ import einkaufszettel.composeapp.generated.resources.delete_shopping_item_server
 import einkaufszettel.composeapp.generated.resources.no_internet_error
 import einkaufszettel.composeapp.generated.resources.no_shopping_item
 import einkaufszettel.composeapp.generated.resources.not_logged_in
+import einkaufszettel.composeapp.generated.resources.shopping_item_is_disabled
 import einkaufszettel.composeapp.generated.resources.update_fail
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -44,6 +47,8 @@ class ShoppingListDetailsViewModel(
     private val deleteShoppingItemR: DeleteShoppingItemFromRemoteUseCase,
     private val updateItemCountL: UpdateShoppingItemCountInLocalUseCase,
     private val updateItemCountR: UpdateShoppingItemCountInRemoteUseCase,
+    private val updateItemCheckStatusL: UpdateShoppingItemCheckStatusInLocalUseCase,
+    private val updateItemCheckStatusR: UpdateShoppingItemCheckStatusInRemoteUseCase,
     private val observer: ConnectivityObserver,
     private val auth: AuthRepository
 ): ViewModel() {
@@ -186,15 +191,19 @@ class ShoppingListDetailsViewModel(
         }
     }
 
-    fun updateShoppingItemCheckStatus(
-        shoppingItemId: String,
-        isChecked: Boolean
+    fun onDeleteClick(
+        shoppingItemId: String
     ){
         _listDetailsState.value = _listDetailsState.value.copy(
             isLoading = true
         )
         viewModelScope.launch {
-            if(!isChecked){
+                val currentList = _listDetailsState.value.shoppingDetailsItems ?: emptyList()
+                val filteredList = currentList.filter { it.shoppingItemId != shoppingItemId }
+                _listDetailsState.value = _listDetailsState.value.copy(
+                    shoppingDetailsItems = filteredList,
+                    isLoading = true
+                )
                 val localResult = deleteShoppingItemL(shoppingItemId)
                 if(localResult is Resource.Error){
                     _listDetailsState.value = _listDetailsState.value.copy(
@@ -221,12 +230,24 @@ class ShoppingListDetailsViewModel(
                     isLoading = false,
                     error = UiText.StringResourceId(Res.string.data_removed_successfully)
                 )
-            }
+
         }
     }
 
     fun updateShoppingItemCount(shoppingItemId: String, itemCount: Int){
+        val item = _listDetailsState.value.shoppingDetailsItems?.find { it.shoppingItemId == shoppingItemId }
+        if(item == null){
+            return
+        }
+        if(item.isChecked){
+            _listDetailsState.value = _listDetailsState.value.copy(
+                error = UiText.StringResourceId(Res.string.shopping_item_is_disabled)
+            )
+            return
+        }
         val currentList = _listDetailsState.value.shoppingDetailsItems ?: emptyList()
+        val tagetItem = currentList.find { it.shoppingItemId == shoppingItemId }
+        val targetProductId = tagetItem?.productId
         val updateList = currentList.map { item ->
             if(item.shoppingItemId == shoppingItemId){
                 item.copy(itemCount = itemCount)
@@ -234,6 +255,7 @@ class ShoppingListDetailsViewModel(
                 item
             }
         }
+
         _listDetailsState.value = _listDetailsState.value.copy(shoppingDetailsItems = updateList)
 
         debounceJob[shoppingItemId]?.cancel()
@@ -258,17 +280,38 @@ class ShoppingListDetailsViewModel(
                 return@launch
             }
 
-            val remoteResult = updateItemCountR(
-                billId = billId,
-                itemId = shoppingItemId,
-                itemCount = itemCount
+            if(targetProductId != null){
+                val remoteResult = updateItemCountR(
+                    billId = billId,
+                    productId = targetProductId,
+                    itemCount = itemCount
                 )
+
+                if(remoteResult is Resource.Error){
+                    _listDetailsState.value = _listDetailsState.value.copy(
+                        error = UiText.StringResourceId(Res.string.update_fail)
+                    )
+                }
+            }
+        }
+
+    }
+
+    fun onUpdateCheckedChange(shoppingItemId: String, isChecked: Boolean){
+        _listDetailsState.value = _listDetailsState.value.copy(isLoading = true)
+        viewModelScope.launch {
+            val localResult = updateItemCheckStatusL(shoppingItemId, isChecked)
+            if(localResult is Resource.Error){
+                _listDetailsState.value = _listDetailsState.value.copy(
+                    error = UiText.StringResourceId(Res.string.update_fail)
+                )
+            }
+            val remoteResult = updateItemCheckStatusR(billId,shoppingItemId,isChecked)
             if(remoteResult is Resource.Error){
                 _listDetailsState.value = _listDetailsState.value.copy(
                     error = UiText.StringResourceId(Res.string.update_fail)
                 )
             }
         }
-
     }
 }

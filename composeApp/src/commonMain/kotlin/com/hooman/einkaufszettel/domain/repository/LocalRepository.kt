@@ -15,6 +15,7 @@ interface LocalRepository {
     suspend fun deleteBill(bill: Bill): Resource<Unit>
     suspend fun insertShoppingItem(shoppingItem: ShoppingItem,billId: String): Resource<Unit>
     suspend fun deleteShoppingItem(shoppingItemId: String): Resource<Unit>
+    suspend fun deleteShoppingItemByProductAndBill(billId: String, productId: String): Resource<Unit>
     fun getAllProducts(): Flow<Resource<List<Product>>>
 
     fun getProductByName(name: String): Flow<Resource<List<Product>>>

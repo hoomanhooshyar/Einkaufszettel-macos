@@ -11,8 +11,8 @@ import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import com.hooman.einkaufszettel.domain.repository.AuthRepository
-import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemFromLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemByProductAndBillFromLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemByProductAndBillFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllProductsByUserIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllProductsFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetCheckedProductsForShoppingItemFromLocal
@@ -20,11 +20,8 @@ import com.hooman.einkaufszettel.domain.usecase.InsertProductToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToRemoteUseCase
 import einkaufszettel.composeapp.generated.resources.Res
-import einkaufszettel.composeapp.generated.resources.allStringResources
 import einkaufszettel.composeapp.generated.resources.data_save_just_in_local
-import einkaufszettel.composeapp.generated.resources.get_data_from_server
 import einkaufszettel.composeapp.generated.resources.item_added_successfully
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -34,8 +31,8 @@ class AddShoppingItemViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val insertItemL: InsertShoppingItemToLocalUseCase,
     private val insertItemR: InsertShoppingItemToRemoteUseCase,
-    private val deleteItemR: DeleteShoppingItemFromRemoteUseCase,
-    private val deleteItemL: DeleteShoppingItemFromLocalUseCase,
+    private val deleteItemR: DeleteShoppingItemByProductAndBillFromRemoteUseCase,
+    private val deleteItemL: DeleteShoppingItemByProductAndBillFromLocalUseCase,
     private val getAllProductsL: GetAllProductsFromLocalUseCase,
     private val getAllProductsR: GetAllProductsByUserIdFromRemoteUseCase,
     private val getCheckedProductsForShoppingItemL: GetCheckedProductsForShoppingItemFromLocal,
@@ -140,13 +137,16 @@ class AddShoppingItemViewModel(
     }
 
 
-    fun removeShoppingItemByProductId(shoppingItemId: String){
+    fun removeShoppingItemByProductIdAndBillId(productId: String){
         _addBillItemState.value = _addBillItemState.value.copy(
             error = null,
             isLoading = true
         )
         viewModelScope.launch {
-            val localResult = deleteItemL(shoppingItemId = shoppingItemId)
+            val localResult = deleteItemL(
+                billId = billId,
+                productId = productId
+            )
 
             if(localResult is Resource.Error){
                 _addBillItemState.value = _addBillItemState.value.copy(
@@ -164,7 +164,7 @@ class AddShoppingItemViewModel(
                 return@launch
             }
 
-            val remoteResult = deleteItemR(billId, shoppingItemId)
+            val remoteResult = deleteItemR(billId, productId)
 
             if(remoteResult is Resource.Error){
                 _addBillItemState.value = _addBillItemState.value.copy(

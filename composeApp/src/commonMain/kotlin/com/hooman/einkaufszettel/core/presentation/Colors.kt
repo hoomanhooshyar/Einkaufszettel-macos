@@ -53,3 +53,16 @@ val redGradient = Brush.horizontalGradient(
     )
 )
 
+val naturalGrayGradient = Brush.horizontalGradient(
+    colors = listOf(
+        Color(0xFFE0E0E0),
+        Color(0xFF9E9E9E)
+    )
+)
+
+val premiumGrayBlueGradient = Brush.horizontalGradient(
+    colors = listOf(
+        Color(0xFFCFD8DC), // نقره‌ای روشن
+        Color(0xFF90A4AE)  // نقره‌ای مات
+    )
+)

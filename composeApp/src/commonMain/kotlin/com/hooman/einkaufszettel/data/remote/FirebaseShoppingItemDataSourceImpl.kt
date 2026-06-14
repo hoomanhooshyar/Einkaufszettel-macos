@@ -14,7 +14,7 @@ class FirebaseShoppingItemDataSourceImpl(
     override suspend fun insertItem(shoppingItem: ShoppingItem) {
         svc.io {
             svc.shoppingItemsCol(shoppingItem.billId)
-                .document(shoppingItem.id)
+                .document(shoppingItem.productId)
                 .set(ShoppingItemDto.fromDomain(shoppingItem))
         }
     }
@@ -36,6 +36,15 @@ class FirebaseShoppingItemDataSourceImpl(
         }
     }
 
+    override suspend fun deleteShoppingItemByProductAndBill(
+        billId: String,
+        productId: String
+    ) {
+        svc.io {
+            svc.shoppingItemsCol(billId).document(productId).delete()
+        }
+    }
+
     override fun getShoppingItemByBillId(billId: String): Flow<List<ShoppingItem>> {
         return svc.shoppingItemsCol(billId)
             .snapshots
@@ -54,18 +63,18 @@ class FirebaseShoppingItemDataSourceImpl(
         svc.io {
             svc.shoppingItemsCol(billId)
                 .document(itemId)
-                .update("isChecked", isChecked)
+                .update(mapOf("isChecked" to isChecked))
         }
     }
 
     override suspend fun updateShoppingItemCount(
         billId: String,
-        itemId: String,
+        productId: String,
         itemCount: Int
     ) {
         svc.io {
             svc.shoppingItemsCol(billId)
-                .document(itemId)
+                .document(productId)
                 .update(mapOf("itemCount" to itemCount))
         }
     }

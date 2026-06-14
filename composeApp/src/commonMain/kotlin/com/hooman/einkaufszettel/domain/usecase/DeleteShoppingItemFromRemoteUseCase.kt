@@ -9,7 +9,6 @@ class DeleteShoppingItemFromRemoteUseCase(
 ) {
     suspend operator fun invoke( billId: String,shoppingItemId: String): Resource<Unit> {
         return repository.deleteShoppingItem(
-
             billId = billId,
             shoppingItemId = shoppingItemId,
         )

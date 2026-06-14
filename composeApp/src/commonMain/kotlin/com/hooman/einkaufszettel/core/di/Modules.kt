@@ -28,6 +28,8 @@ import com.hooman.einkaufszettel.domain.usecase.DeleteBillFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteBillFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteProductFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteProductFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemByProductAndBillFromLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemByProductAndBillFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllBillsByUserIdFromRemoteUseCase
@@ -175,5 +177,7 @@ val useCaseModule = module {
     factory { UpdateShoppingItemCheckStatusInRemoteUseCase(get()) }
     factory { UpdateShoppingItemCountInLocalUseCase(get()) }
     factory { UpdateShoppingItemCountInRemoteUseCase(get()) }
+    factory { DeleteShoppingItemByProductAndBillFromLocalUseCase(get()) }
+    factory { DeleteShoppingItemByProductAndBillFromRemoteUseCase(get()) }
 
  }

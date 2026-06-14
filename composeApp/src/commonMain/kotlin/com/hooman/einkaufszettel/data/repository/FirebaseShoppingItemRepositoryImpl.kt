@@ -42,6 +42,18 @@ class FirebaseShoppingItemRepositoryImpl(
         }
     }
 
+    override suspend fun deleteShoppingItemByProductAndBill(
+        billId: String,
+        productId: String
+    ): Resource<Unit> {
+        return try {
+            dataSource.deleteShoppingItemByProductAndBill(billId = billId, productId = productId)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
     override fun getShoppingItemByBillId(billId: String): Flow<Resource<List<ShoppingItem>>> = flow {
        emit(Resource.Loading())
         try {
@@ -68,11 +80,11 @@ class FirebaseShoppingItemRepositoryImpl(
 
     override suspend fun updateShoppingItemCount(
         billId: String,
-        itemId: String,
+        productId: String,
         itemCount: Int
     ): Resource<Unit> {
         return try {
-            dataSource.updateShoppingItemCount(billId, itemId, itemCount)
+            dataSource.updateShoppingItemCount(billId, productId, itemCount)
             Resource.Success(Unit)
         }catch (e: Exception){
             Resource.Error(e.message)

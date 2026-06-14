@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.data.local.entity.BillEntity
 import com.hooman.einkaufszettel.data.local.entity.ProductEntity
 import com.hooman.einkaufszettel.data.local.entity.ShoppingItemEntity
@@ -86,8 +85,11 @@ interface AppDao {
     @Query("DELETE FROM shopping_items WHERE id = :shoppingItemId")
     suspend fun deleteShoppingItem(shoppingItemId: String)
 
+    @Query("DELETE FROM shopping_items WHERE billId = :billId AND productId = :productId")
+    suspend fun deleteShoppingItemByProductAndBill(billId: String, productId: String)
+
     @Query("UPDATE shopping_items SET itemCount = :itemCount WHERE id = :id")
-    suspend fun updateSHoppingItemCount(id: String, itemCount: Int)
+    suspend fun updateShoppingItemCount(id: String, itemCount: Int)
 
     @Delete
     suspend fun deleteBill(bill: BillEntity)

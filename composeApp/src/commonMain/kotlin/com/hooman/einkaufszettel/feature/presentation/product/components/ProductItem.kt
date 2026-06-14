@@ -45,8 +45,8 @@ fun ProductItem(
     val spacerWidth = 16.dp
     Card(
         modifier = modifier
-            .padding(AppDimens.spacingSmall),
-        shape = RoundedCornerShape(AppDimens.cardRadius),
+            .padding(horizontal = AppDimens.spacingSmall, vertical = AppDimens.spacingSmall),
+        shape = RoundedCornerShape(AppDimens.cardRadiusLarge),
         elevation = CardDefaults.cardElevation(
             defaultElevation = AppDimens.cardElevation
         ),
@@ -57,8 +57,11 @@ fun ProductItem(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
                 .background(brush = backgroundColor)
+                .padding(vertical = 24.dp)
+                .fillMaxWidth()
+
+
         ){
             Row(
                 modifier = Modifier.fillMaxWidth(),

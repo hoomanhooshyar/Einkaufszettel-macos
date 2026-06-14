@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.hooman.einkaufszettel.app.Routes
+import com.hooman.einkaufszettel.core.presentation.AppDimens
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
@@ -149,7 +150,6 @@ fun HomeScreen(
 
                         HomeItem(
                             modifier = Modifier
-                                .padding(8.dp)
                             ,
                             bill = bill,
                             background = backgroundColor,

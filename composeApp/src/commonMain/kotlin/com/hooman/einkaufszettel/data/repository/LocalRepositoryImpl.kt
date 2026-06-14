@@ -1,9 +1,7 @@
 package com.hooman.einkaufszettel.data.repository
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.data.local.dao.AppDao
-import com.hooman.einkaufszettel.data.local.entity.ProductEntity
 import com.hooman.einkaufszettel.data.mapper.toDomain
 import com.hooman.einkaufszettel.data.mapper.toEntity
 import com.hooman.einkaufszettel.data.mapper.toProduct
@@ -80,6 +78,18 @@ class LocalRepositoryImpl(
             dao.deleteShoppingItem(shoppingItemId = shoppingItemId)
             Resource.Success(Unit)
         } catch (e: Exception) {
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun deleteShoppingItemByProductAndBill(
+        billId: String,
+        productId: String
+    ): Resource<Unit> {
+        return try {
+            dao.deleteShoppingItemByProductAndBill(billId, productId)
+            Resource.Success(Unit)
+        }catch (e: Exception){
             Resource.Error(e.message)
         }
     }
@@ -191,7 +201,7 @@ class LocalRepositoryImpl(
         itemCount: Int
     ):Resource<Unit> {
         return try {
-            dao.updateSHoppingItemCount(shoppingItemId, itemCount)
+            dao.updateShoppingItemCount(shoppingItemId, itemCount)
             Resource.Success(Unit)
         }catch (e: Exception){
             Resource.Error(e.message)

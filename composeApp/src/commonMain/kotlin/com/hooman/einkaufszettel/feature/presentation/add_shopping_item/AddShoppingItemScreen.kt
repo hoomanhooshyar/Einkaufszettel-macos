@@ -1,10 +1,10 @@
 package com.hooman.einkaufszettel.feature.presentation.add_shopping_item
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -18,9 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.hooman.einkaufszettel.core.presentation.AppDimens
+import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.blackColor
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
@@ -52,7 +54,7 @@ fun AddShoppingItemScreenRoot(
         val error = state.error!!.asString()
         LaunchedEffect(error){
             snackBarHostState.showSnackbar(
-                message = "Checked IDs from DB: ${state.checkedProductIds}",
+                message = error,
                 duration = SnackbarDuration.Long
             )
         }
@@ -62,10 +64,11 @@ fun AddShoppingItemScreenRoot(
             .fillMaxSize()
             .padding(contentPadding),
         products = state.products,
+        backgroundColor = backgroundGradient,
         checkedProductIds = state.checkedProductIds,
         onCheckedChange = { product,isChecked ->
             if(isChecked){
-                val id = Uuid.random().toString()
+                val id = "${viewModel.billId}_${product.id}"
                 val shoppingItem = ShoppingItem(
                     id = id,
                     billId = viewModel.billId,
@@ -79,7 +82,7 @@ fun AddShoppingItemScreenRoot(
                 )
                 viewModel.insertShoppingItemIntoBill(shoppingItem)
             }else{
-                viewModel.removeShoppingItemByProductId(product.id)
+                viewModel.removeShoppingItemByProductIdAndBillId(product.id)
             }
         }
     )
@@ -89,12 +92,15 @@ fun AddShoppingItemScreenRoot(
 fun AddShoppingItemScreen(
     products: List<Product> = emptyList(),
     checkedProductIds: Set<String>,
+    backgroundColor: Brush,
+    modifier: Modifier = Modifier,
     onCheckedChange: (Product, Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
+
+    ) {
     if(products.isEmpty()){
         Column(
-            modifier = modifier,
+            modifier = modifier
+                .background(backgroundColor),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
@@ -108,6 +114,7 @@ fun AddShoppingItemScreen(
     }else{
         LazyColumn(
             modifier = modifier
+                .background(backgroundColor)
         ){
 
             val brushes = listOf(greenGradient, orangeGradient, purpleGradient, redGradient)
@@ -120,8 +127,8 @@ fun AddShoppingItemScreen(
                 val backgroundColor = brushes[index % brushes.size]
                 CECheckListItem(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
+                        .fillMaxSize()
+                        .padding(horizontal = AppDimens.spacingSmall, vertical = AppDimens.spacingSmall),
                     background = backgroundColor,
                     item = product,
                     isChecked = isProductChecked,
