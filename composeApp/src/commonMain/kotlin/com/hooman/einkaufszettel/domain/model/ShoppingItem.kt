@@ -5,6 +5,7 @@ data class ShoppingItem(
     val billId: String,
     val productId: String,
     val itemCount: Int,
+    val discount: Float,
     val productName: String,
     val productPrice: Double,
     val productImage: String?,

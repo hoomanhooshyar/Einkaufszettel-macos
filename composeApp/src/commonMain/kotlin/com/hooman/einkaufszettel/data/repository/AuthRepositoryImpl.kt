@@ -18,40 +18,25 @@ class AuthRepositoryImpl(
         return Firebase.auth.currentUser?.uid
     }
 
-    override suspend fun signInWithGoogle(idToken: String, accessToken: String?): Flow<Resource<User>> = flow {
-//        val credential = GoogleAuthProvider.credential(idToken,null)
-//        val result: AuthResult? = auth.signInWithCredential(credential)
-//        if(result == null)
-//            emit(Resource.Error("Sign in failed"))
-//        else{
-//            val u = result.user ?: error("Firebase user is null")
-//            val user = User(
-//                id = u.uid,
-//                name = u.displayName,
-//                imageUrl = u.photoURL
-//            )
-//            emit(Resource.Success(user))
-//        }
-        try {
+    override suspend fun signInWithGoogle(idToken: String, accessToken: String?):Resource<User> {
+        return try {
             val credential = GoogleAuthProvider.credential(idToken,accessToken)
             val currentUser = auth.currentUser
-            val result: AuthResult
-
-            if(currentUser != null && currentUser.isAnonymous){
-                result = currentUser.linkWithCredential(credential)
+            val result = if(currentUser != null && currentUser.isAnonymous){
+                currentUser.linkWithCredential(credential)
             }else{
-                result = auth.signInWithCredential(credential)
+                auth.signInWithCredential(credential)
             }
-            val u = result.user ?: error("Firebase user is null")
+            val u = result.user ?: return Resource.Error("Firebase user is null")
             val user = User(
                 id = u.uid,
                 name = u.displayName,
                 imageUrl = u.photoURL
             )
-            emit(Resource.Success(user))
+            Resource.Success(data = user)
         }catch (e: Exception){
             e.printStackTrace()
-            emit(Resource.Error(e.message.toString()))
+            Resource.Error(message = e.message ?: "Unknown Error")
         }
     }
 

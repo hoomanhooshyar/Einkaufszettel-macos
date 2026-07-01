@@ -71,34 +71,7 @@ fun MainScreen(
 
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if(isConnected) "Online" else "Offline"
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.navigateUp()
-                        }
-                    ){
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = ""
-                        )
-                    }
-                },
-                colors = TopAppBarColors(
-                    containerColor = darkYellowColor,
-                    scrolledContainerColor = whiteColor,
-                    navigationIconContentColor = blackColor,
-                    titleContentColor = blackColor,
-                    actionIconContentColor = blackColor
-                )
-            )
-        },
+
         bottomBar = {
             BottomBar(
                 navController = navController,

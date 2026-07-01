@@ -40,29 +40,30 @@ import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.no_products
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.collections.forEach
 
 @Composable
 fun ShoppingListDetailsScreenRoot(
-    viewModel:  ShoppingListDetailsViewModel = koinViewModel(),
+    viewModel: ShoppingListDetailsViewModel = koinViewModel(),
     snackBarHostState: SnackbarHostState,
     navController: NavHostController,
     onBack: () -> Unit,
     onAddProduct: () -> Unit,
     contentPadding: PaddingValues,
-    ) {
+) {
     val state by viewModel.listDetailsState.collectAsState()
 
-    if (state.error != null){
+    if (state.error != null) {
         val error = state.error!!.asString()
-        LaunchedEffect(error){
+        LaunchedEffect(error) {
             snackBarHostState.showSnackbar(error, duration = SnackbarDuration.Long)
         }
     }
-    if(state.bill == null){
+    if (state.bill == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             CircularProgressIndicator(color = whiteColor)
         }
         return
@@ -75,14 +76,22 @@ fun ShoppingListDetailsScreenRoot(
         onClick = {
             navController.navigate(Routes.AddShoppingItem(bill.id))
         },
-        onCountChange = {shoppingItemId, count ->
+        onCountChange = { shoppingItemId, count ->
             viewModel.updateShoppingItemCount(shoppingItemId, count)
         },
         onDeleteClick = { shoppingItemId ->
             viewModel.onDeleteClick(shoppingItemId)
         },
-        onCheckedChange = {shoppingItemId, isChecked ->
+        onCheckedChange = { shoppingItemId, isChecked ->
             viewModel.onUpdateCheckedChange(shoppingItemId, isChecked)
+        },
+        onDiscountChange = { shoppingItemId, discount ->
+
+            viewModel.updateDiscount(shoppingItemId, discount)
+
+        },
+        onTotalAmountChange = {
+            viewModel.getTotalAmount() ?: 0.0
         }
     )
 }
@@ -95,27 +104,30 @@ fun ShoppingListDetailsScreen(
     onClick: () -> Unit,
     onCountChange: (String, Int) -> Unit,
     onDeleteClick: (String) -> Unit,
-    onCheckedChange: (String, Boolean) -> Unit
+    onCheckedChange: (String, Boolean) -> Unit,
+    onDiscountChange: (String, Float) -> Unit,
+    onTotalAmountChange: () -> Double
 ) {
     Column(
         modifier = Modifier
             .padding(contentPadding)
             .fillMaxSize()
             .background(backgroundGradient),
-    ){
+    ) {
         Header(
             modifier = Modifier,
             bill = bill,
             background = backgroundCardGradient,
+            totalAmount = onTotalAmountChange(),
             onClick = { onClick() }
-            )
+        )
 
-        if(shoppingDetailsList.isNullOrEmpty()){
+        if (shoppingDetailsList.isNullOrEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
+            ) {
                 Text(
                     text = stringResource(Res.string.no_products),
                     style = MaterialTheme.typography.titleLarge,
@@ -123,17 +135,17 @@ fun ShoppingListDetailsScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-        }else{
+        } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
-            ){
+            ) {
                 val brushes = listOf(greenGradient, orangeGradient, purpleGradient, redGradient)
                 itemsIndexed(
                     items = shoppingDetailsList,
-                    key = { _, shoppingDetails -> shoppingDetails.shoppingItemId}
+                    key = { _, shoppingDetails -> shoppingDetails.shoppingItemId }
                 ) { index, shoppingDetails ->
                     val backgroundColor = brushes[index % brushes.size]
-                    val (plusBrush, minusBrush) = when(backgroundColor){
+                    val (plusBrush, minusBrush) = when (backgroundColor) {
                         greenGradient -> Pair(redGradient, orangeGradient)
                         orangeGradient -> Pair(purpleGradient, greenGradient)
                         purpleGradient -> Pair(greenGradient, redGradient)
@@ -141,19 +153,23 @@ fun ShoppingListDetailsScreen(
                     }
                     AddedShoppingItem(
                         item = shoppingDetails,
-                        background = if(!shoppingDetails.isChecked) premiumGrayBlueGradient else backgroundColor,
+                        selectedBackground = backgroundColor,
+                        unselectedBackground = premiumGrayBlueGradient,
                         modifier = Modifier.padding(AppDimens.spacingSmall),
-                        plusColor = if(shoppingDetails.isChecked) premiumGrayBlueGradient else plusBrush,
-                        minusColor = if(shoppingDetails.isChecked) premiumGrayBlueGradient else minusBrush,
+                        plusColor = if (shoppingDetails.isChecked) premiumGrayBlueGradient else plusBrush,
+                        minusColor = if (shoppingDetails.isChecked) premiumGrayBlueGradient else minusBrush,
                         onDeleteClick = { shoppingItemId ->
                             onDeleteClick(shoppingItemId)
                         },
                         onCountChange = { shoppingItemId, count ->
-                            onCountChange(shoppingItemId,count)
+                            onCountChange(shoppingItemId, count)
                         },
                         isChecked = shoppingDetails.isChecked,
                         onCheckedChange = { shoppingItemId, isChecked ->
                             onCheckedChange(shoppingItemId, isChecked)
+                        },
+                        onDiscountChange = { shoppingItemId, discount ->
+                            onDiscountChange(shoppingItemId, discount)
                         }
                     )
                 }

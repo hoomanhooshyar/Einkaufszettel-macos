@@ -40,6 +40,7 @@ import com.hooman.einkaufszettel.domain.usecase.GetAllShoppingItemsByUserIdFromR
 import com.hooman.einkaufszettel.domain.usecase.GetAvailableProductsForShoppingItemFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetBillsByDateFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetCheckedProductsForShoppingItemFromLocal
 import com.hooman.einkaufszettel.domain.usecase.GetProductByIdFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetProductByIdFromRemoteUseCase
@@ -60,6 +61,8 @@ import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInL
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemDiscountInLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemDiscountInRemoteUseCase
 import com.hooman.einkaufszettel.feature.presentation.add_product.AddProductViewModel
 import com.hooman.einkaufszettel.feature.presentation.add_shopping_item.AddShoppingItemViewModel
 import com.hooman.einkaufszettel.feature.presentation.create_bill.CreateBillViewModel
@@ -130,6 +133,7 @@ val sharedModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::AddShoppingItemViewModel)
     viewModelOf(::AddProductViewModel)
+    viewModelOf(::ReportsViewModel)
 
 
 
@@ -147,6 +151,7 @@ val useCaseModule = module {
     factory { GetBillByIdFromRemoteUseCase(get()) }
     factory { InsertBillToLocalUseCase(get()) }
     factory { InsertBillToRemoteUseCase(get()) }
+    factory { GetBillsByDateFromLocalUseCase(get()) }
 
     //Product
     factory { DeleteProductFromLocalUseCase(get()) }
@@ -179,5 +184,7 @@ val useCaseModule = module {
     factory { UpdateShoppingItemCountInRemoteUseCase(get()) }
     factory { DeleteShoppingItemByProductAndBillFromLocalUseCase(get()) }
     factory { DeleteShoppingItemByProductAndBillFromRemoteUseCase(get()) }
+    factory { UpdateShoppingItemDiscountInRemoteUseCase(get()) }
+    factory { UpdateShoppingItemDiscountInLocalUseCase(get()) }
 
  }

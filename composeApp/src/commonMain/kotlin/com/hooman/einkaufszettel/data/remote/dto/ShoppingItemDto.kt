@@ -8,6 +8,7 @@ data class ShoppingItemDto(
     val billId: String = "",
     val productId: String = "",
     val itemCount: Int = 0,
+    val discount: Float = 0f,
     val productName: String = "",
     val productPrice: Double = 0.0,
     val productImage: String? = null,
@@ -22,6 +23,7 @@ data class ShoppingItemDto(
         productName = productName,
         productPrice = productPrice,
         productImage = productImage,
+        discount = discount,
         isChecked = isChecked,
         userId = userId
     )
@@ -33,6 +35,7 @@ data class ShoppingItemDto(
             itemCount = item.itemCount,
             productName = item.productName,
             productPrice = item.productPrice,
+            discount = item.discount,
             productImage = item.productImage,
             isChecked = item.isChecked,
             userId = item.userId

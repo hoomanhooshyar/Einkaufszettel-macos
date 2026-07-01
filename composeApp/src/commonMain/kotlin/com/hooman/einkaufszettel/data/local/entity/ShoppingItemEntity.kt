@@ -29,5 +29,6 @@ data class ShoppingItemEntity(
     val billId: String,
     val productId: String,
     val itemCount: Int,
+    val discount: Float,
     val isChecked: Boolean
 )

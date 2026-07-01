@@ -53,6 +53,9 @@ class ProductViewModel(
     private val _deleteState = MutableStateFlow<UiText?>(null)
     val deleteState: StateFlow<UiText?> = _deleteState.asStateFlow()
 
+    private var isInitialLoad = true
+
+
     init {
         _userId.value = auth.getCurrentUserId()
         observeProduct()
@@ -63,29 +66,21 @@ class ProductViewModel(
             getProductsL().collect { res ->
                 when(res){
                     is Resource.Success ->{
-                        if(res.data.isNullOrEmpty()){
+                        val products = res.data ?: emptyList()
+                        if(products.isEmpty() && isInitialLoad){
+                            isInitialLoad = false
                             _state.value = _state.value.copy(isLoading = true)
-                            if(_userId.value.isNullOrEmpty()){
-                                _state.value = _state.value.copy(
-                                    isLoading = false,
-                                    error = UiText.StringResourceId(Res.string.not_logged_in)
-                                )
-                                return@collect
-                            }
                             val currentUser = _userId.value
-                            if(currentUser.isNullOrEmpty()){
-                                _state.value = _state.value.copy(
-                                    isLoading = false,
-                                    error = UiText.StringResourceId(Res.string.not_logged_in)
-                                )
-                                return@collect
+                            if(!currentUser.isNullOrEmpty()){
+                                getAllProductsFromRemote(currentUser)
+
                             }
-                            getAllProductsFromRemote(currentUser)
                         }else{
+                            isInitialLoad = false
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 error = null,
-                                products = res.data
+                                products = products
                             )
                         }
                     }
@@ -145,7 +140,8 @@ class ProductViewModel(
             if(products.isNullOrEmpty()){
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = UiText.StringResourceId(Res.string.no_products)
+                    error = UiText.StringResourceId(Res.string.no_products),
+                    products = emptyList()
                 )
                 return@launch
             }

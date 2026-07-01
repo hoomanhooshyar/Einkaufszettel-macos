@@ -11,4 +11,5 @@ interface FirebaseShoppingItemDataSource {
     fun getShoppingItemByBillId(billId: String): Flow<List<ShoppingItem>>
     suspend fun updateShoppingItemCheckStatus(billId: String, itemId: String, isChecked: Boolean)
     suspend fun updateShoppingItemCount(billId: String, productId: String, itemCount: Int)
+    suspend fun updateShoppingItemDiscount(billId: String, productId: String, discount: Float)
 }

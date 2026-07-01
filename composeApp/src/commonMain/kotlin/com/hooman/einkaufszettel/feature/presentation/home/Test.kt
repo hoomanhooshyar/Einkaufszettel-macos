@@ -34,6 +34,7 @@ fun generateTestBills(): List<Bill> {
                 productPrice = (1..50).random().toDouble(),
                 productImage = null,
                 userId = "test_user",
+                discount = 0f,
                 isChecked = false
             )
         }
@@ -75,6 +76,7 @@ suspend fun addBill(svc: FirebaseService){
                 productPrice = 1.0,
                 productImage = null,
                 userId = uid,
+                discount = 0f,
                 isChecked = false
             )
 

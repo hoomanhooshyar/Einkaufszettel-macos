@@ -14,7 +14,7 @@ class FirebaseShoppingItemDataSourceImpl(
     override suspend fun insertItem(shoppingItem: ShoppingItem) {
         svc.io {
             svc.shoppingItemsCol(shoppingItem.billId)
-                .document(shoppingItem.productId)
+                .document(shoppingItem.id)
                 .set(ShoppingItemDto.fromDomain(shoppingItem))
         }
     }
@@ -41,7 +41,8 @@ class FirebaseShoppingItemDataSourceImpl(
         productId: String
     ) {
         svc.io {
-            svc.shoppingItemsCol(billId).document(productId).delete()
+            val documentId = "${billId}_${productId}"
+            svc.shoppingItemsCol(billId).document(documentId).delete()
         }
     }
 
@@ -73,9 +74,23 @@ class FirebaseShoppingItemDataSourceImpl(
         itemCount: Int
     ) {
         svc.io {
+            val documentId = "${billId}_${productId}"
             svc.shoppingItemsCol(billId)
-                .document(productId)
+                .document(documentId)
                 .update(mapOf("itemCount" to itemCount))
+        }
+    }
+
+    override suspend fun updateShoppingItemDiscount(
+        billId: String,
+        productId: String,
+        discount: Float
+    ) {
+        svc.io {
+            val docummentId = "${billId}_${productId}"
+            svc.shoppingItemsCol(billId)
+                .document(docummentId)
+                .update(mapOf("discount" to discount.toString()))
         }
     }
 }

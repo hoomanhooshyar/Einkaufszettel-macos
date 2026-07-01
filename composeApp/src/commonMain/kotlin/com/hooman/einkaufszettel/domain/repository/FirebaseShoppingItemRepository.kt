@@ -13,4 +13,5 @@ interface FirebaseShoppingItemRepository {
     fun getShoppingItemByBillId(billId: String): Flow<Resource<List<ShoppingItem>>>
     suspend fun updateShoppingItemCheckStatus(billId: String, itemId: String, isChecked: Boolean):Resource<Unit>
     suspend fun updateShoppingItemCount(billId: String, productId: String, itemCount: Int): Resource<Unit>
+    suspend fun updateShoppingItemDiscount(billId: String, productId: String, discount: Float): Resource<Unit>
 }

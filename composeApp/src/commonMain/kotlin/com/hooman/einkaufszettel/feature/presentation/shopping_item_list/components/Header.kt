@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
+import com.hooman.einkaufszettel.core.util.toTwoDecimals
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.getDisplayTypename
 import com.hooman.einkaufszettel.feature.presentation.components.CEButton
@@ -29,6 +30,7 @@ import einkaufszettel.composeapp.generated.resources.bill_name
 import einkaufszettel.composeapp.generated.resources.bill_type
 import einkaufszettel.composeapp.generated.resources.count_of_items
 import einkaufszettel.composeapp.generated.resources.created_date
+import einkaufszettel.composeapp.generated.resources.total_amount
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -36,6 +38,7 @@ fun Header(
     modifier: Modifier = Modifier,
     bill: Bill,
     background: Brush,
+    totalAmount: Double = 0.0,
     onClick: () -> Unit
 ) {
 
@@ -43,6 +46,13 @@ fun Header(
     val type = bill.type.getDisplayTypename()
     val name = bill.name
     val itemCount = bill.items.size
+
+   /* bill.items.forEach { item ->
+        val totalPrice = item.itemCount * item.productPrice
+        val discount = (item.discount / 100) * totalPrice
+        val finalPrice = totalPrice - discount
+        totalAmount += finalPrice
+    }*/
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -70,7 +80,8 @@ fun Header(
             ){
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ){
                     Text(
@@ -134,6 +145,23 @@ fun Header(
                     Text(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         text = itemCount.toString(),
+                        color = whiteColor
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        text = stringResource(Res.string.total_amount),
+                        color = whiteColor
+                    )
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        text = totalAmount.toTwoDecimals(),
                         color = whiteColor
                     )
                 }

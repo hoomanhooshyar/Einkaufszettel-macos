@@ -18,6 +18,7 @@ fun BillWithItemsAndProducts.toDomain(): Bill{
                 itemCount = shoppingItemWithProduct.item.itemCount,
                 productPrice = shoppingItemWithProduct.product.price,
                 productImage = shoppingItemWithProduct.product.image,
+                discount = shoppingItemWithProduct.item.discount,
                 billId = bill.id,
                 isChecked = shoppingItemWithProduct.item.isChecked,
                 userId = ""

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.hooman.einkaufszettel.data.local.dao
 
 import androidx.room.Dao
@@ -6,12 +8,16 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.TypeConverters
+import com.hooman.einkaufszettel.data.local.converter.Converter
 import com.hooman.einkaufszettel.data.local.entity.BillEntity
 import com.hooman.einkaufszettel.data.local.entity.ProductEntity
 import com.hooman.einkaufszettel.data.local.entity.ShoppingItemEntity
 import com.hooman.einkaufszettel.data.local.relation.BillWithItemsAndProducts
 import com.hooman.einkaufszettel.domain.model.ShoppingDetails
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Dao
 interface AppDao {
@@ -56,7 +62,8 @@ interface AppDao {
         SELECT p.id as productId, p.image as productImage,
                 p.name as productName, p.price as productPrice,
                 si.id as shoppingItemId, si.isChecked as isChecked,
-                si.itemCount as itemCount 
+                si.itemCount as itemCount,
+                si.discount as discount
                 FROM product p
                 INNER JOIN shopping_items si 
                 ON p.id = si.productId AND si.billId = :billId
@@ -79,6 +86,7 @@ interface AppDao {
     """)
     fun getCheckedProductsForShoppingItem(billId: String): Flow<List<String>>
 
+    @Transaction
     @Delete
     suspend fun deleteProduct(product: ProductEntity)
 
@@ -96,5 +104,18 @@ interface AppDao {
 
     @Query("UPDATE shopping_items SET isChecked = :isChecked WHERE id = :id")
     suspend fun updateShoppingItemCheckStatus(id: String, isChecked: Boolean)
+
+    @Query("UPDATE shopping_items SET discount = :discount WHERE id = :id")
+    suspend fun updateShoppingItemDiscount(id: String, discount: Float)
+
+    //Report Queries
+
+    @Transaction
+    @Query("SELECT * FROM bill WHERE billDate BETWEEN :startDate AND :endDate ORDER BY billDate DESC")
+    fun getAllBillsByDate(startDate: Long, endDate: Long): Flow<List<BillWithItemsAndProducts>>
+
+    @Transaction
+    @Query("SELECT image FROM product")
+    fun getProductIcons(): Flow<List<String>>
 
 }

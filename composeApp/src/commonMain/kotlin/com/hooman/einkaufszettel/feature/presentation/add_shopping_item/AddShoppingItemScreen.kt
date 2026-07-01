@@ -48,8 +48,6 @@ fun AddShoppingItemScreenRoot(
 ) {
     val state by viewModel.addBillItemState.collectAsState()
 
-
-
     if(state.error != null){
         val error = state.error!!.asString()
         LaunchedEffect(error){
@@ -69,6 +67,7 @@ fun AddShoppingItemScreenRoot(
         onCheckedChange = { product,isChecked ->
             if(isChecked){
                 val id = "${viewModel.billId}_${product.id}"
+
                 val shoppingItem = ShoppingItem(
                     id = id,
                     billId = viewModel.billId,
@@ -77,7 +76,8 @@ fun AddShoppingItemScreenRoot(
                     productName = product.name,
                     productPrice = product.price,
                     productImage = product.image,
-                    isChecked = true,
+                    discount = 0f,
+                    isChecked = false,
                     userId = viewModel.userId.value!!
                 )
                 viewModel.insertShoppingItemIntoBill(shoppingItem)

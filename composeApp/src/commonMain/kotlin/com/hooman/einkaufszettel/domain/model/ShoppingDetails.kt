@@ -6,6 +6,7 @@ data class ShoppingDetails(
     val productName: String,
     val productPrice: Double,
     val shoppingItemId: String,
+    val discount: Float,
     val isChecked: Boolean,
     val itemCount: Int?,
 )

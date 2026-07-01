@@ -21,7 +21,15 @@
     <string name="bill_remove_remote_fail">Bill has been not deleted from Server</string>
     <string name="bill_remove_remote_success">Bill has been removed from Server</string>
     <string name="shopping_item_is_disabled">You can't update this item</string>
+    <string name="discount_error">Discount must be bigger than 0</string>
+    <string name="no_data">No Data</string>
+    <string name="discount">Discount</string>
+    <string name="total">Total</string>
+    <string name="average_per_purchase">Average per purchase</string>
 
+
+    <string name="total_amount">Total amount</string>
+    <string name="total_purchase_by_percent">Total purchase total by percentage</string>
     <string name="product_delete_from_remote">Product deleted from server</string>
     <string name="product_delete_from_local">Product deleted from local database"</string>
     <string name="bill_name_empty_error">Bill name is empty</string>
@@ -61,6 +69,28 @@
     <string name="product_price">Product Price</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
+
+    <string name="monday">Mo</string>
+    <string name="tuesday">Di</string>
+    <string name="wednesday">Mi</string>
+    <string name="thursday">Do</string>
+    <string name="friday">Fr</string>
+    <string name="saturday">Sa</string>
+    <string name="sunday">So</string>
+
+    <string name="jan">Jan</string>
+    <string name="feb">Feb</string>
+    <string name="mar">Mar</string>
+    <string name="apr">Apr</string>
+    <string name="may">May</string>
+    <string name="jun">Jun</string>
+    <string name="jul">Jul</string>
+    <string name="aug">Aug</string>
+    <string name="sep">Sep</string>
+    <string name="oct">Oct</string>
+    <string name="nov">Nov</string>
+    <string name="dec">Dec</string>
+
 
     <!--  Type Values  -->
     <string name="supermarket">Supermarket</string>

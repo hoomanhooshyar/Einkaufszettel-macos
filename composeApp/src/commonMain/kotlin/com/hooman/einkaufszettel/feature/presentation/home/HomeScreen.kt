@@ -39,6 +39,7 @@ import com.hooman.einkaufszettel.core.presentation.orangeGradient
 import com.hooman.einkaufszettel.core.presentation.purpleGradient
 import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
+import com.hooman.einkaufszettel.core.util.toTwoDecimals
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.feature.presentation.home.components.HomeItem
 import einkaufszettel.composeapp.generated.resources.Res
@@ -57,12 +58,14 @@ fun HomeScreenRoot(
 
     val state by viewModel.state.collectAsState()
 
+
     if(state.error != null){
         val error: String = state.error!!.asString()
         LaunchedEffect(error){
             snackBarHostState.showSnackbar(error, duration = SnackbarDuration.Short)
         }
     }
+
 
     HomeScreen(
         contentPadding = contentPadding,
@@ -71,7 +74,8 @@ fun HomeScreenRoot(
         navController = navController,
         onDelete = {
             viewModel.deleteBill(it)
-        }
+        },
+        totalAmount = state.totalAmount
     )
 }
 
@@ -83,12 +87,11 @@ fun HomeScreen(
     background: Brush,
     bills: List<Bill> = emptyList(),
     navController: NavHostController,
-    onDelete: (Bill) -> Unit
+    onDelete: (Bill) -> Unit,
+    totalAmount: Double
 ) {
 
-    val priceState: MutableState<String> = remember {
-        mutableStateOf("0.0")
-    }
+
 
 
 
@@ -115,7 +118,7 @@ fun HomeScreen(
                     modifier = Modifier.width(8.dp)
                 )
                 Text(
-                    text = priceState.value,
+                    text = totalAmount.toTwoDecimals(),
                     color = whiteColor,
                     style = MaterialTheme.typography.titleLarge
                 )

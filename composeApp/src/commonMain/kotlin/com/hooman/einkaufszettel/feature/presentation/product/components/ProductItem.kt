@@ -20,6 +20,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -27,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hooman.einkaufszettel.core.presentation.AppDimens
+import com.hooman.einkaufszettel.core.presentation.animations.DisintegratingItemWrapper
 
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.domain.model.Product
@@ -43,70 +48,82 @@ fun ProductItem(
 ) {
     val imageSize = 50.dp
     val spacerWidth = 16.dp
-    Card(
-        modifier = modifier
-            .padding(horizontal = AppDimens.spacingSmall, vertical = AppDimens.spacingSmall),
-        shape = RoundedCornerShape(AppDimens.cardRadiusLarge),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = AppDimens.cardElevation
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        ),
-        onClick = {onProductClick(product.id)}
-    ) {
-        Box(
-            modifier = Modifier
-                .background(brush = backgroundColor)
-                .padding(vertical = 24.dp)
-                .fillMaxWidth()
+
+    var isRemoving by remember { mutableStateOf(false) }
+
+    DisintegratingItemWrapper(
+        isRemoving = isRemoving,
+        onAnimationComplete = {
+            onDeleteClick(product)
+        }
+    ){
+        Card(
+            modifier = modifier
+                .padding(horizontal = AppDimens.spacingSmall, vertical = AppDimens.spacingSmall),
+            shape = RoundedCornerShape(AppDimens.cardRadiusLarge),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = AppDimens.cardElevation
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent
+            ),
+            onClick = {onProductClick(product.id)}
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(brush = backgroundColor)
+                    .padding(vertical = 24.dp)
+                    .fillMaxWidth()
 
 
-        ){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
             ){
-                ProductImage(
-                    modifier = Modifier
-                        .padding(vertical = AppDimens.extraSpacing, horizontal = AppDimens.spacingMedium)
-                        .size(imageSize),
-                    imageUrl = product.image ?:  "noimage"
-
-                )
-                Spacer(
-                    modifier = Modifier.width(spacerWidth)
-                )
-                Column(
-                    modifier = Modifier.weight(1f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ){
-                    Text(
-                        text = product.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = whiteColor,
-                        fontWeight = FontWeight.Bold
+                    ProductImage(
+                        modifier = Modifier
+                            .padding(vertical = AppDimens.extraSpacing, horizontal = AppDimens.spacingMedium)
+                            .size(imageSize),
+                        imageUrl = product.image ?:  "noimage"
+
                     )
-                    Text(
-                        text = "${product.price} €",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = whiteColor,
-                        fontWeight = FontWeight.Bold
+                    Spacer(
+                        modifier = Modifier.width(spacerWidth)
                     )
-                }
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ){
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = whiteColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${product.price} €",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = whiteColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
 
-                IconButton(
-                    onClick = { onDeleteClick(product) },
-                ){
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = whiteColor
-                    )
+                    IconButton(
+                        onClick = { isRemoving = true },
+                    ){
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = whiteColor
+                        )
+                    }
                 }
             }
-        }
 
+        }
     }
+
+
 }

@@ -1,16 +1,19 @@
 package com.hooman.einkaufszettel.domain.repository
 
 import com.hooman.einkaufszettel.core.util.Resource
-import com.hooman.einkaufszettel.data.local.entity.ProductEntity
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.model.ShoppingDetails
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 interface LocalRepository {
     fun getAllBills(): Flow<Resource<List<Bill>>>
     fun getBillById(billId: String): Flow<Resource<Bill>>
+
+    fun getBillByDate(startDate: Long, endDate: Long): Flow<Resource<List<Bill>>>
     suspend fun insertBill(bill: Bill): Resource<Unit>
     suspend fun deleteBill(bill: Bill): Resource<Unit>
     suspend fun insertShoppingItem(shoppingItem: ShoppingItem,billId: String): Resource<Unit>
@@ -34,4 +37,6 @@ interface LocalRepository {
 
     suspend fun updateShoppingItemCheckStatus(shoppingItemId: String, isChecked: Boolean): Resource<Unit>
     suspend fun updateSHoppingItemCount(shoppingItemId: String, itemCount: Int): Resource<Unit>
+
+    suspend fun updateShoppingItemDiscount(shoppingItemId: String, discount: Float): Resource<Unit>
 }

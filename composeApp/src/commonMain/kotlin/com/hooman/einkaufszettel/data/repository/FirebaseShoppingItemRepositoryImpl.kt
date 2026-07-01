@@ -5,7 +5,10 @@ import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import com.hooman.einkaufszettel.domain.repository.FirebaseShoppingItemRepository
 import com.hooman.einkaufszettel.domain.source.FirebaseShoppingItemDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class FirebaseShoppingItemRepositoryImpl(
     private val dataSource: FirebaseShoppingItemDataSource
@@ -19,15 +22,17 @@ class FirebaseShoppingItemRepositoryImpl(
         }
     }
 
-    override fun getAllShoppingItemsByUserId(userId: String): Flow<Resource<List<ShoppingItem>>> = flow {
-        emit(Resource.Loading())
-        try {
-            dataSource.getAllItemsByUserId(userId).collect { items ->
-                emit(Resource.Success(items))
+    override fun getAllShoppingItemsByUserId(userId: String): Flow<Resource<List<ShoppingItem>>> {
+        return dataSource.getAllItemsByUserId(userId)
+            .map { items ->
+                Resource.Success(items) as Resource<List<ShoppingItem>>
             }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
     override suspend fun deleteShoppingItem(
@@ -54,15 +59,17 @@ class FirebaseShoppingItemRepositoryImpl(
         }
     }
 
-    override fun getShoppingItemByBillId(billId: String): Flow<Resource<List<ShoppingItem>>> = flow {
-       emit(Resource.Loading())
-        try {
-            dataSource.getShoppingItemByBillId(billId).collect { items ->
-                emit(Resource.Success(items))
-            }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+    override fun getShoppingItemByBillId(billId: String): Flow<Resource<List<ShoppingItem>>> {
+       return dataSource.getShoppingItemByBillId(billId)
+           .map { items ->
+               Resource.Success(items) as Resource<List<ShoppingItem>>
+           }
+           .onStart {
+               emit(Resource.Loading())
+           }
+           .catch { e ->
+               emit(Resource.Error(e.message))
+           }
     }
 
     override suspend fun updateShoppingItemCheckStatus(
@@ -85,6 +92,19 @@ class FirebaseShoppingItemRepositoryImpl(
     ): Resource<Unit> {
         return try {
             dataSource.updateShoppingItemCount(billId, productId, itemCount)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun updateShoppingItemDiscount(
+        billId: String,
+        productId: String,
+        discount: Float
+    ): Resource<Unit> {
+        return try {
+            dataSource.updateShoppingItemDiscount(billId, productId, discount)
             Resource.Success(Unit)
         }catch (e: Exception){
             Resource.Error(e.message)

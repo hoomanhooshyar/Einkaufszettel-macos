@@ -5,7 +5,10 @@ import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.repository.FirebaseProductRepository
 import com.hooman.einkaufszettel.domain.source.FirebaseProductDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class FirebaseProductRepositoryImpl(
     private val dataSource: FirebaseProductDataSource
@@ -20,49 +23,57 @@ class FirebaseProductRepositoryImpl(
         }
     }
 
-    override fun getAllProductsByUserId(userId: String): Flow<Resource<List<Product>>> = flow {
-        emit(Resource.Loading())
-        try {
-            dataSource.getAllProductsByUserId(userId).collect { products ->
-                emit(Resource.Success(products))
-                }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+    override fun getAllProductsByUserId(userId: String): Flow<Resource<List<Product>>> {
+        return dataSource.getAllProductsByUserId(userId)
+            .map { products ->
+                Resource.Success(products) as Resource<List<Product>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getProductByName(name: String): Flow<Resource<List<Product>>> = flow {
-        emit(Resource.Loading())
-        try {
-            dataSource.getProductByName(name).collect { products ->
-                emit(Resource.Success(products))
+    override fun getProductByName(name: String): Flow<Resource<List<Product>>> {
+        return dataSource.getProductByName(name)
+            .map { products ->
+                Resource.Success(products) as Resource<List<Product>>
             }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
 
     }
 
-    override fun getProductIcons(): Flow<Resource<List<String>>> = flow {
-        emit(Resource.Loading())
-        try {
-            dataSource.getProductIcon().collect { icons ->
-                emit(Resource.Success(icons))
+    override fun getProductIcons(): Flow<Resource<List<String>>>{
+        return dataSource.getProductIcon()
+            .map { icons ->
+                Resource.Success(icons) as Resource<List<String>>
             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getProductById(productId: String): Flow<Resource<Product>> = flow {
-       emit(Resource.Loading())
-        try {
-            dataSource.getProductById(productId).collect { product ->
-                emit(Resource.Success(product))
-            }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+    override fun getProductById(productId: String): Flow<Resource<Product>> {
+       return dataSource.getProductById(productId)
+           .map { product ->
+               Resource.Success(product) as Resource<Product>
+           }
+           .onStart {
+               emit(Resource.Loading())
+           }
+           .catch { e ->
+               emit(Resource.Error(e.message))
+           }
     }
 
     override suspend fun deleteProduct(productId: String):Resource<Unit> {

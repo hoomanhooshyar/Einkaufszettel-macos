@@ -13,32 +13,58 @@ import com.hooman.einkaufszettel.domain.model.ShoppingDetails
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import com.hooman.einkaufszettel.domain.repository.LocalRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlin.time.ExperimentalTime
 
 class LocalRepositoryImpl(
     private val dao: AppDao
 ): LocalRepository {
-    override fun getAllBills(): Flow<Resource<List<Bill>>> = flow {
-        emit(Resource.Loading())
-        try {
-            dao.getAllBills().collect { bills ->
-               emit(Resource.Success(data = bills.map{it.toDomain()}))
-             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+    override fun getAllBills(): Flow<Resource<List<Bill>>> {
+        return dao.getAllBills()
+            .map { bills ->
+                Resource.Success(data = bills.map { it.toDomain() }) as Resource<List<Bill>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getBillById(billId: String): Flow<Resource<Bill>> = flow {
-        emit(Resource.Loading())
-        try {
-            dao.getBillById(billId).collect { bill ->
-                emit(Resource.Success(data = bill?.toDomain()))
+    override fun getBillById(billId: String): Flow<Resource<Bill>> {
+        return dao.getBillById(billId)
+            .map { bill ->
+                Resource.Success(data = bill?.toDomain()) as Resource<Bill>
             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
+    }
 
-        }
+    @OptIn(ExperimentalTime::class)
+    override fun getBillByDate(
+        startDate: Long,
+        endDate: Long
+    ): Flow<Resource<List<Bill>>>{
+        return dao.getAllBillsByDate(
+            startDate = startDate,
+            endDate = endDate
+        )
+            .map { bills ->
+                Resource.Success(data = bills.map { it.toDomain() }) as Resource<List<Bill>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
     override suspend fun insertBill(bill: Bill): Resource<Unit>  {
@@ -94,94 +120,109 @@ class LocalRepositoryImpl(
         }
     }
 
-    override fun getAllProducts(): Flow<Resource<List<Product>>> = flow {
-        emit(Resource.Loading())
-        try {
-            dao.getAllProducts().collect { products ->
-                emit(Resource.Success(data = products.map {
-                    it.toProduct()
-                }
-                ))
+    override fun getAllProducts(): Flow<Resource<List<Product>>> {
+        return dao.getAllProducts()
+            .map { products ->
+                Resource.Success(data = products.map { it.toProduct() }) as Resource<List<Product>>
             }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getProductByName(name: String): Flow<Resource<List<Product>>> = flow{
-        emit(Resource.Loading())
-        try {
-            dao.getProductByName(name).collect { products ->
-                emit(Resource.Success(data = products.map { it.toProduct() }))
+    override fun getProductByName(name: String): Flow<Resource<List<Product>>>{
+        return dao.getProductByName(name)
+            .map { products ->
+                Resource.Success(data =  products.map { it.toProduct() }) as Resource<List<Product>>
             }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getProductById(productId: String): Flow<Resource<Product>> = flow {
-        emit(Resource.Loading())
-        try {
-            dao.getProductById(productId).collect { product ->
-                emit(Resource.Success(data = product?.toProduct()))
+    override fun getProductById(productId: String): Flow<Resource<Product>> {
+        return dao.getProductById(productId)
+            .map { product ->
+                Resource.Success(data = product?.toProduct()) as Resource<Product>
             }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getProductIcons(): Flow<Resource<List<String>>> = flow {
-        emit(Resource.Loading())
-        try {
-
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+    override fun getProductIcons(): Flow<Resource<List<String>>> {
+        return dao.getProductIcons()
+            .map { icons ->
+                Resource.Success(data = icons) as Resource<List<String>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getAllShoppingItemsByBillId(billId: String): Flow<Resource<List<ShoppingItem>>> = flow{
-        emit(Resource.Loading())
-        try {
-            dao.getShoppingItemsByBillId(billId).collect { shoppingItems ->
-                emit(Resource.Success(data = shoppingItems.map { it.toShoppingItem() }))
+    override fun getAllShoppingItemsByBillId(billId: String): Flow<Resource<List<ShoppingItem>>>{
+        return dao.getShoppingItemsByBillId(billId)
+            .map { items ->
+                Resource.Success(data = items.map { it.toShoppingItem() }) as Resource<List<ShoppingItem>>
             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getAvailableProductsForShoppingItem(billId: String): Flow<Resource<List<Product>>> = flow{
-        emit(Resource.Loading())
-        try {
-            dao.getAvailableProductsForShoppingItem(billId).collect { products ->
-                emit(Resource.Success(data = products.map { it.toProduct() }))
+    override fun getAvailableProductsForShoppingItem(billId: String): Flow<Resource<List<Product>>>{
+        return dao.getAvailableProductsForShoppingItem(billId)
+            .map { products ->
+                Resource.Success(data = products.map { it.toProduct() }) as Resource<List<Product>>
             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
-    override fun getCheckedProductsForShoppingItem(billId: String): Flow<Resource<List<String>>> = flow{
-        emit(Resource.Loading())
-        try {
-            dao.getCheckedProductsForShoppingItem(billId).collect { products ->
-                emit(Resource.Success(data = products))
+    override fun getCheckedProductsForShoppingItem(billId: String): Flow<Resource<List<String>>>{
+        return dao.getCheckedProductsForShoppingItem(billId)
+            .map { checkedProducts ->
+                Resource.Success(data = checkedProducts) as Resource<List<String>>
             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
 
     }
 
-    override fun getProductsForShoppingItem(billId: String): Flow<Resource<List<ShoppingDetails>>> = flow{
-        emit(Resource.Loading())
-        try {
-            dao.getProductsForShoppingItem(billId).collect { shoppingDetails ->
-                emit(Resource.Success(data = shoppingDetails))
+    override fun getProductsForShoppingItem(billId: String): Flow<Resource<List<ShoppingDetails>>> {
+        return dao.getProductsForShoppingItem(billId)
+            .map { shoppingDetails ->
+                Resource.Success(data = shoppingDetails) as Resource<List<ShoppingDetails>>
             }
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 
     override suspend fun updateShoppingItemCheckStatus(
@@ -207,6 +248,18 @@ class LocalRepositoryImpl(
             Resource.Error(e.message)
         }
 
+    }
+
+    override suspend fun updateShoppingItemDiscount(
+        shoppingItemId: String,
+        discount: Float
+    ): Resource<Unit> {
+        return try {
+            dao.updateShoppingItemDiscount(shoppingItemId, discount)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
     }
 
 

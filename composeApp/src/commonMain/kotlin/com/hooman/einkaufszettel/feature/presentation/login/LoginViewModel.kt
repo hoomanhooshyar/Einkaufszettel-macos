@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel(
     private val authRepository: AuthRepository,
     private val googleAuthManager: GoogleAuthManager
-): ViewModel() {
+) : ViewModel() {
     private val _loginState = MutableStateFlow(LoginState())
     val loginState = _loginState.asStateFlow()
 
@@ -24,36 +24,37 @@ class LoginViewModel(
     val events = _events.receiveAsFlow()
 
 
-    fun onGoogleIdTokenReceived(googleToken: GoogleTokens){
+    fun onGoogleIdTokenReceived(googleToken: GoogleTokens) {
         viewModelScope.launch {
             _loginState.update { it.copy(isLoading = true) }
 
-            authRepository.signInWithGoogle(googleToken.idToken, googleToken.accessToken)
-                .collect { res ->
-                    when(res){
-                        is Resource.Success -> {
-                            _loginState.update {
-                                it.copy(
-                                isLoading = false,
-                                isLoggedIn = true,
+            val result =
+                authRepository.signInWithGoogle(googleToken.idToken, googleToken.accessToken)
 
-                                )
-                            }
-                            _events.send(LoginEvent.NavigateToHome)
-                        }
-                        is Resource.Error -> {
-                            _loginState.update {
-                                it.copy(
-                                    isLoading = false
-                                )
-                            }
-                            _events.send(LoginEvent.ShowSnackBar(res.message!!))
-                        }
-                        is Resource.Loading -> {
-                            _loginState.update { it.copy(isLoading = true) }
-                        }
-                    }
+            when (result) {
+                is Resource.Success -> {
+                    _loginState.value = _loginState.value.copy(
+                            isLoading = false,
+                            isLoggedIn = true,
+                            )
+                    _events.send(LoginEvent.NavigateToHome)
                 }
+
+                is Resource.Error -> {
+                    _loginState.value = _loginState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = false,
+                    )
+
+                    _events.send(LoginEvent.ShowSnackBar(result.message!!))
+                }
+
+                is Resource.Loading -> {
+                    _loginState.value = _loginState.value.copy(
+                        isLoading = true
+                    )
+                }
+            }
         }
     }
 }

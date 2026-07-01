@@ -51,7 +51,24 @@ class FirebaseBillDataSourceImpl(
 
     override suspend fun deleteBill(billId: String) {
         svc.io {
-            svc.billsCol().document(billId).delete()
+            // ۱. ساخت یک عملیات گروهی (Batch)
+            val batch = svc.db.batch()
+
+            // ۲. پیدا کردن تمام آیتم‌های داخل این فاکتور
+            // نکته: در کتابخانه KMP فایربیس، get() خودش suspend است.
+            val itemSnapshot = svc.shoppingItemsCol(billId).get()
+
+            // ۳. اضافه کردن دستور حذف تک‌تک آیتم‌ها به Batch
+            for(doc in itemSnapshot.documents){
+                batch.delete(doc.reference)
+            }
+
+            // ۴. اضافه کردن دستور حذفِ خودِ فاکتور به Batch
+            val billRef = svc.billsCol().document(billId)
+            batch.delete(billRef)
+
+            // ۵. شلیک نهایی! اجرای تمام عملیات‌ها به صورت یکپارچه
+            batch.commit()
         }
     }
 

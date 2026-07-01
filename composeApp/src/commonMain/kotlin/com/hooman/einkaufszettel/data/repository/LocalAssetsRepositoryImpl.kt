@@ -3,7 +3,11 @@ package com.hooman.einkaufszettel.data.repository
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.domain.repository.LocalAssetsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class LocalAssetsRepositoryImpl: LocalAssetsRepository {
     private fun getOfflineIcons(): List<String>{
@@ -19,12 +23,16 @@ class LocalAssetsRepositoryImpl: LocalAssetsRepository {
         )
     }
 
-    override fun getProductIcons(): Flow<Resource<List<String>>> = flow {
-        emit(Resource.Loading())
-        try {
-            emit(Resource.Success(getOfflineIcons()))
-        }catch (e: Exception){
-            emit(Resource.Error(e.message))
-        }
+    override fun getProductIcons(): Flow<Resource<List<String>>> {
+        return flowOf(getOfflineIcons())
+            .map { icons ->
+                Resource.Success(data = icons) as Resource<List<String>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
     }
 }

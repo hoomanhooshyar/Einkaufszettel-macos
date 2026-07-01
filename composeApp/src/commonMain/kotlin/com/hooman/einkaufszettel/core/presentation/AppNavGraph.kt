@@ -1,5 +1,10 @@
 package com.hooman.einkaufszettel.core.presentation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -42,9 +47,36 @@ fun AppNavGraph(
         NavHost(
             navController = navController,
             startDestination = Routes.MainGraph,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = {fullWidth -> fullWidth},
+                    animationSpec = tween(durationMillis = 400)
+                ) + fadeIn(animationSpec = tween(durationMillis = 400))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = {fullWidth -> -fullWidth},
+                    animationSpec = tween(durationMillis = 400)
+                ) + fadeOut(animationSpec = tween(durationMillis = 400))
+            },
+
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = {fullWidth -> fullWidth},
+                    animationSpec = tween(durationMillis = 400)
+                ) + fadeIn(animationSpec = tween(durationMillis = 400))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = {fullWidth -> -fullWidth},
+                    animationSpec = tween(durationMillis = 400)
+                ) + fadeOut(animationSpec = tween(durationMillis = 400))
+            }
+
         ){
             navigation<Routes.MainGraph>(
-                startDestination = if(!isLogin) Routes.Login else Routes.Home
+                startDestination = if(!isLogin) Routes.Login else Routes.Home,
+
             ){
                 composable<Routes.Home> {
                     val vm = koinViewModel<HomeViewModel>()

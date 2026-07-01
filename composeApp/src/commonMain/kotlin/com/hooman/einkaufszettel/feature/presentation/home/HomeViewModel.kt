@@ -41,6 +41,11 @@ class HomeViewModel(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
+    private var isInitialLoad = true
+
+    private val _userId = MutableStateFlow(auth.getCurrentUserId())
+    val userId = _userId.asStateFlow()
+
     init {
         observeBills()
     }
@@ -50,14 +55,22 @@ class HomeViewModel(
             getBillL().collect { res ->
                 when(res){
                     is Resource.Success ->{
-                        if(res.data.isNullOrEmpty()){
+                        val bills = res.data ?: emptyList()
+                        if(bills.isEmpty() && isInitialLoad){
+                            isInitialLoad = false
                             _state.value = _state.value.copy(isLoading = true)
-                            getBillFromRemote()
+                            val currentUser = _userId.value
+                            if(!currentUser.isNullOrEmpty()){
+                                getBillFromRemote()
+                            }
                         }else{
+                            isInitialLoad = false
+                            val newTotalAmount = calculateTotalAmount(bills)
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 error = null,
-                                bills = res.data
+                                bills = bills,
+                                totalAmount = newTotalAmount
                             )
                         }
                     }
@@ -120,7 +133,8 @@ class HomeViewModel(
             if(bills.isNullOrEmpty()){
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = UiText.StringResourceId(Res.string.no_bills)
+                    error = UiText.StringResourceId(Res.string.no_bills),
+                    bills = emptyList()
                 )
                 return@launch
             }
@@ -169,6 +183,14 @@ class HomeViewModel(
                 isLoading = false,
                 error = UiText.StringResourceId(Res.string.bill_remove_remote_success)
             )
+        }
+    }
+
+    private fun calculateTotalAmount(bills: List<Bill>): Double{
+        return bills.sumOf { bill ->
+            bill.items.sumOf { item ->
+                item.itemCount * item.productPrice
+            }
         }
     }
 }
