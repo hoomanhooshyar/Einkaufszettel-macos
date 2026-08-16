@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.data.remote.dto
 
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import kotlinx.serialization.Serializable
 
@@ -13,7 +14,8 @@ data class ShoppingItemDto(
     val productPrice: Double = 0.0,
     val productImage: String? = null,
     val userId: String = "",
-    val isChecked: Boolean = false
+    val isChecked: Boolean = false,
+    val syncStatus: SyncStatus
 ){
     fun toDomain(id: String): ShoppingItem = ShoppingItem(
         id = id,
@@ -25,7 +27,8 @@ data class ShoppingItemDto(
         productImage = productImage,
         discount = discount,
         isChecked = isChecked,
-        userId = userId
+        userId = userId,
+        syncStatus = syncStatus
     )
 
     companion object {
@@ -38,7 +41,8 @@ data class ShoppingItemDto(
             discount = item.discount,
             productImage = item.productImage,
             isChecked = item.isChecked,
-            userId = item.userId
+            userId = item.userId,
+            syncStatus = item.syncStatus
         )
     }
 }

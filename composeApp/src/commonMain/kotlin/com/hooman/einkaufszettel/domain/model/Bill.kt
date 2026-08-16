@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.domain.model
 
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import kotlinx.datetime.Instant
 
 data class Bill(
@@ -8,5 +9,6 @@ data class Bill(
     val items: List<ShoppingItem>,
     val name: String,
     val userId: String,
-    val type: PurchaseType
+    val type: PurchaseType,
+    val syncStatus: SyncStatus
 )

@@ -64,7 +64,7 @@ class FirebaseProductDataSourceImpl(
         svc.io {
             svc.productsCol()
                 .document(product.id)
-                .set(ProductDto.fromDomain(product))
+                .set(ProductDto.fromDomain(product, product.syncStatus))
         }
     }
 

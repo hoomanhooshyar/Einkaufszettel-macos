@@ -9,7 +9,8 @@ fun Bill.toEntity(): BillEntity {
         id = id,
         billDate = billDate,
         name = name,
-        type = type.name
+        type = type.name,
+        syncStatus = syncStatus
     )
 }
 
@@ -20,7 +21,8 @@ fun BillEntity.toDomain(): Bill {
         userId = "",
         items = emptyList(),
         name = name,
-        type = PurchaseType.valueOf(type)
+        type = PurchaseType.valueOf(type),
+        syncStatus = syncStatus
 
     )
 }

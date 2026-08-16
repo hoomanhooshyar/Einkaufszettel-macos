@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.data.remote.dto
 
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.PurchaseType
 import kotlinx.datetime.Instant
@@ -11,7 +12,8 @@ data class BillDto(
     val billDateMillis: Long = 0L,
     val name: String = "",
     val userId: String = "",
-    val type: String
+    val type: String,
+    val syncStatus: SyncStatus
 ){
     fun toDomain(id: String): Bill = Bill(
         id = id,
@@ -19,15 +21,17 @@ data class BillDto(
         items = emptyList(),
         name = name,
         userId = userId,
-        type = PurchaseType.valueOf(type)
+        type = PurchaseType.valueOf(type),
+        syncStatus = syncStatus
     )
 
     companion object{
-        fun fromDomain(bill: Bill): BillDto = BillDto(
+        fun fromDomain(bill: Bill, status: SyncStatus): BillDto = BillDto(
             billDateMillis = bill.billDate.toEpochMilliseconds(),
             userId = bill.userId,
             name = bill.name,
-            type = bill.type.name
+            type = bill.type.name,
+            syncStatus = status
         )
     }
 }

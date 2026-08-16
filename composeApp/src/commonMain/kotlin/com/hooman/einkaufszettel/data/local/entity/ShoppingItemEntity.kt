@@ -30,5 +30,6 @@ data class ShoppingItemEntity(
     val productId: String,
     val itemCount: Int,
     val discount: Float,
-    val isChecked: Boolean
+    val isChecked: Boolean,
+    val syncStatus: SyncStatus
 )

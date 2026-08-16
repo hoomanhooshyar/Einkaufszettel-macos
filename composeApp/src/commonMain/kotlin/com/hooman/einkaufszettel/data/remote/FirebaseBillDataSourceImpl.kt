@@ -17,7 +17,7 @@ class FirebaseBillDataSourceImpl(
                 println("🟢 DEBUG: Try to save to Firestore with ID: ${bill.id}")
                 svc.billsCol()
                     .document(bill.id)
-                    .set(BillDto.fromDomain(bill))
+                    .set(BillDto.fromDomain(bill, bill.syncStatus))
                 println("🟢 DEBUG: Successfully saved to Firestore!")
             }catch (e: Exception){
                 println("🔴 DEBUG: Firebase CRASHED: ${e.message}")
@@ -46,6 +46,16 @@ class FirebaseBillDataSourceImpl(
             .snapshots
             .map { doc ->
                 doc.data<BillDto>().toDomain(doc.id)
+            }
+
+    override fun getBillByName(name: String): Flow<List<Bill>> =
+        svc.billsCol()
+            .where { "name" equalTo name }
+            .snapshots
+            .map { snapshot ->
+                snapshot.documents.map { doc ->
+                    doc.data<BillDto>().toDomain(doc.id)
+                }
             }
 
 

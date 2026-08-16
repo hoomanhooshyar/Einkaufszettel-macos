@@ -56,6 +56,14 @@ val redGradient = Brush.horizontalGradient(
     )
 )
 
+val buttonGradient = Brush.verticalGradient(
+    colors = listOf(
+        Color(0xFFFFB3B3),
+        Color(0xFFFF5252),
+        Color(0xFFD32F2F)
+    )
+)
+
 val naturalGrayGradient = Brush.horizontalGradient(
     colors = listOf(
         Color(0xFFE0E0E0),

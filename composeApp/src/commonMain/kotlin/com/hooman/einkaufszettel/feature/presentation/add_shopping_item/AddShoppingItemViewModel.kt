@@ -16,12 +16,14 @@ import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemByProductAndBi
 import com.hooman.einkaufszettel.domain.usecase.GetAllProductsByUserIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllProductsFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetCheckedProductsForShoppingItemFromLocal
+import com.hooman.einkaufszettel.domain.usecase.InsertProductListToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.SyncDatabaseUseCase
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.data_save_just_in_local
 import einkaufszettel.composeapp.generated.resources.item_added_successfully
+import einkaufszettel.composeapp.generated.resources.no_products
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -30,17 +32,16 @@ import kotlinx.coroutines.launch
 class AddShoppingItemViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val insertItemL: InsertShoppingItemToLocalUseCase,
-    private val insertItemR: InsertShoppingItemToRemoteUseCase,
     private val deleteItemR: DeleteShoppingItemByProductAndBillFromRemoteUseCase,
     private val deleteItemL: DeleteShoppingItemByProductAndBillFromLocalUseCase,
     private val getAllProductsL: GetAllProductsFromLocalUseCase,
     private val getAllProductsR: GetAllProductsByUserIdFromRemoteUseCase,
     private val getCheckedProductsForShoppingItemL: GetCheckedProductsForShoppingItemFromLocal,
-    private val insertProductL: InsertProductToLocalUseCase,
+    private val insertProductListL: InsertProductListToLocalUseCase,
     private val authRepository: AuthRepository,
-
+    private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val observer: ConnectivityObserver
-): ViewModel() {
+) : ViewModel() {
 
     private val _addBillItemState = MutableStateFlow(AddShoppingItemState())
     val addBillItemState = _addBillItemState.asStateFlow()
@@ -49,21 +50,22 @@ class AddShoppingItemViewModel(
     val userId = _userId.asStateFlow()
 
     val billId = savedStateHandle.toRoute<Routes.AddShoppingItem>().billId
+
     init {
         observeItems()
         getCheckedProductFromShoppingItemList(billId)
     }
 
-    private fun observeItems(){
+    private fun observeItems() {
         viewModelScope.launch {
             getAllProductsL().collect { res ->
-                when(res){
-                    is Resource.Success ->{
+                when (res) {
+                    is Resource.Success -> {
 
-                        if(res.data.isNullOrEmpty()){
+                        if (res.data.isNullOrEmpty()) {
                             _addBillItemState.value = _addBillItemState.value.copy(isLoading = true)
                             getAllProductFromRemote(_userId.value!!)
-                        }else{
+                        } else {
                             _addBillItemState.value = _addBillItemState.value.copy(
                                 isLoading = false,
                                 error = null,
@@ -72,6 +74,7 @@ class AddShoppingItemViewModel(
                         }
 
                     }
+
                     is Resource.Error -> {
                         _addBillItemState.value = _addBillItemState.value.copy(
                             isLoading = false,
@@ -80,6 +83,7 @@ class AddShoppingItemViewModel(
 
 
                     }
+
                     is Resource.Loading -> {
                         _addBillItemState.value = _addBillItemState.value.copy(
                             isLoading = true,
@@ -92,52 +96,41 @@ class AddShoppingItemViewModel(
         }
     }
 
-    fun insertShoppingItemIntoBill(shoppingItem: ShoppingItem){
+    fun insertShoppingItemIntoBill(shoppingItem: ShoppingItem) {
         _addBillItemState.value = _addBillItemState.value.copy(
             isLoading = true,
             error = null
         )
         viewModelScope.launch {
-            val localResult = insertItemL(shoppingItem,billId)
+            if(_userId.value?.isNotEmpty() == true && shoppingItem.userId.equals("")){
 
-            if(localResult is Resource.Error){
-                _addBillItemState.value = _addBillItemState.value.copy(
-                    isLoading = false,
-                    error = UiText.DynamicString(localResult.message!!)
-                )
-
-                return@launch
+                shoppingItem.copy(userId = _userId.value!!)
             }
-            val online = observer.isConnected.first()
-            if(!online){
-                _addBillItemState.value = _addBillItemState.value.copy(
-                    error = UiText.StringResourceId(Res.string.data_save_just_in_local),
-                    isLoading = false
-                )
-                return@launch
-            }
-            val remoteResult = insertItemR(shoppingItem)
-
-            when(remoteResult){
-                is Resource.Success ->{
+            val localResult = insertItemL(shoppingItem, billId)
+            when (localResult) {
+                is Resource.Success -> {
                     _addBillItemState.value = _addBillItemState.value.copy(
                         isLoading = false,
                         error = UiText.StringResourceId(Res.string.item_added_successfully)
                     )
+                    triggerBackgroundSync()
                 }
-                is Resource.Error ->{
+
+                is Resource.Error -> {
                     _addBillItemState.value = _addBillItemState.value.copy(
                         isLoading = false,
-                        error = UiText.DynamicString(remoteResult.message!!)
+                        error = UiText.DynamicString(localResult.message!!)
                     )
                 }
-                is Resource.Loading ->{}
+
+                is Resource.Loading -> {}
             }
+
         }
     }
 
 
-    fun removeShoppingItemByProductIdAndBillId(productId: String){
+    fun removeShoppingItemByProductIdAndBillId(productId: String) {
         _addBillItemState.value = _addBillItemState.value.copy(
             error = null,
             isLoading = true
@@ -148,7 +141,7 @@ class AddShoppingItemViewModel(
                 productId = productId
             )
 
-            if(localResult is Resource.Error){
+            if (localResult is Resource.Error) {
                 _addBillItemState.value = _addBillItemState.value.copy(
                     isLoading = false,
                     error = UiText.DynamicString(localResult.message!!)
@@ -156,7 +149,7 @@ class AddShoppingItemViewModel(
                 return@launch
             }
             val online = observer.isConnected.first()
-            if(!online){
+            if (!online) {
                 _addBillItemState.value = _addBillItemState.value.copy(
                     isLoading = false,
                     error = UiText.StringResourceId(Res.string.data_save_just_in_local)
@@ -166,7 +159,7 @@ class AddShoppingItemViewModel(
 
             val remoteResult = deleteItemR(billId, productId)
 
-            if(remoteResult is Resource.Error){
+            if (remoteResult is Resource.Error) {
                 _addBillItemState.value = _addBillItemState.value.copy(
                     error = UiText.DynamicString(remoteResult.message!!)
                 )
@@ -175,10 +168,16 @@ class AddShoppingItemViewModel(
         }
     }
 
-    private fun getCheckedProductFromShoppingItemList(billId: String){
+    fun clearError() {
+
+        _addBillItemState.value = _addBillItemState.value.copy(error = null)
+
+    }
+
+    private fun getCheckedProductFromShoppingItemList(billId: String) {
         viewModelScope.launch {
             getCheckedProductsForShoppingItemL(billId).collect { res ->
-                if(res is Resource.Success){
+                if (res is Resource.Success) {
                     _addBillItemState.value = _addBillItemState.value.copy(
                         checkedProductIds = res.data?.toSet() ?: emptySet()
                     )
@@ -187,23 +186,25 @@ class AddShoppingItemViewModel(
         }
     }
 
-    private fun     getAllProductFromRemote(userId: String){
+    private fun getAllProductFromRemote(userId: String) {
         viewModelScope.launch {
             getAllProductsR(userId).collect { res ->
-                when(res){
-                    is Resource.Success ->{
+                when (res) {
+                    is Resource.Success -> {
                         insertProductIntoLocal(res.data)
                         _addBillItemState.value = _addBillItemState.value.copy(
                             isLoading = true,
                             error = null,
                         )
                     }
-                    is Resource.Error ->{
+
+                    is Resource.Error -> {
                         _addBillItemState.value = _addBillItemState.value.copy(
                             error = UiText.DynamicString(res.message!!)
                         )
                     }
-                    is Resource.Loading ->{
+
+                    is Resource.Loading -> {
 
                     }
                 }
@@ -211,15 +212,27 @@ class AddShoppingItemViewModel(
         }
     }
 
-    private fun insertProductIntoLocal(products: List<Product>?){
+    private fun insertProductIntoLocal(products: List<Product>?) {
         viewModelScope.launch {
-            products?.forEach { product ->
-                val result = insertProductL(product)
-                if(result is Resource.Error){
-                    print("Error in inserting product into local- ${result.message}")
-                }
+            if (products.isNullOrEmpty()) {
+                _addBillItemState.value = _addBillItemState.value.copy(
+                    error = UiText.StringResourceId(Res.string.no_products)
+                )
+            } else {
+                insertProductListL(products)
             }
+
             _addBillItemState.value = _addBillItemState.value.copy(isLoading = false)
+        }
+    }
+
+    private fun triggerBackgroundSync() {
+        viewModelScope.launch {
+            try {
+                syncDatabaseUseCase()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

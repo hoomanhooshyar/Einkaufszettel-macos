@@ -8,7 +8,8 @@ fun Product.toProductEntity(): ProductEntity {
         id = id,
         name = name,
         image = image,
-        price = price
+        price = price,
+        syncStatus = syncStatus
     )
 }
 
@@ -18,6 +19,7 @@ fun ProductEntity.toProduct(): Product {
         name = name,
         image = image,
         price = price,
+        syncStatus = syncStatus,
         userId = ""
     )
 }

@@ -32,6 +32,8 @@ import com.hooman.einkaufszettel.feature.presentation.report.ReportsScreenRoot
 import com.hooman.einkaufszettel.feature.presentation.report.ReportsViewModel
 import com.hooman.einkaufszettel.feature.presentation.settings.SettingScreenRoot
 import com.hooman.einkaufszettel.feature.presentation.settings.SettingsViewModel
+import com.hooman.einkaufszettel.feature.presentation.start.StartScreenRoot
+import com.hooman.einkaufszettel.feature.presentation.start.StartViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -75,9 +77,19 @@ fun AppNavGraph(
 
         ){
             navigation<Routes.MainGraph>(
-                startDestination = if(!isLogin) Routes.Login else Routes.Home,
+                startDestination = Routes.Start,
 
             ){
+
+                composable<Routes.Start> {
+                    val vm = koinViewModel<StartViewModel>()
+                    StartScreenRoot(
+                        viewModel = vm,
+                        snackBarHostState = snackBarHostState,
+                        navController = navController
+                    )
+                }
+
                 composable<Routes.Home> {
                     val vm = koinViewModel<HomeViewModel>()
                     HomeScreenRoot(
@@ -110,7 +122,8 @@ fun AppNavGraph(
                     val vm = koinViewModel<SettingsViewModel>()
                     SettingScreenRoot(
                         viewModel = vm,
-                        contentPadding = contentPadding
+                        contentPadding = contentPadding,
+                        navController = navController
                     )
                 }
 

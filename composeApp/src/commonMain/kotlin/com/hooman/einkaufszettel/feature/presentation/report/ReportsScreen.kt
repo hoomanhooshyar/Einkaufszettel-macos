@@ -38,6 +38,7 @@ import com.hooman.einkaufszettel.core.presentation.orangeGradient
 import com.hooman.einkaufszettel.core.presentation.purpleGradient
 import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
+import com.hooman.einkaufszettel.core.util.toTwoDecimals
 import com.hooman.einkaufszettel.feature.presentation.components.CETextField
 import com.hooman.einkaufszettel.feature.presentation.report.components.BarChartCard
 import com.hooman.einkaufszettel.feature.presentation.report.components.CustomDatePicker
@@ -107,9 +108,6 @@ fun ReportsScreen(
     var selectedEndDate by remember { mutableStateOf(Clock.System.now()) }
     var selectedStartDate by remember { mutableStateOf(Clock.System.now()) }
     val scrollState = rememberScrollState()
-    val formattedTotalAmount = (totalAmount * 100).roundToInt() / 100.0f
-    val formattedAveragePerPurchase = (averagePerPurchase * 100).roundToInt() / 100.0f
-    val formattedDiscount = (discount * 100).roundToInt() / 100.0f
     LaunchedEffect(Unit) {
 
         onDateSelectorClick(TimeFilter.MONTH, endDate.minus(30.days), endDate)
@@ -313,7 +311,7 @@ fun ReportsScreen(
                     backgroundColor = greenGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.total_amount),
-                    value = "$formattedTotalAmount"
+                    value = "${totalAmount.toTwoDecimals()} €"
                 )
                 ReportCard(
                     modifier = Modifier
@@ -338,7 +336,7 @@ fun ReportsScreen(
                     backgroundColor = purpleGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.average_per_purchase),
-                    value = "$formattedAveragePerPurchase"
+                    value = "${averagePerPurchase.toTwoDecimals()} €"
                 )
                 ReportCard(
                     modifier = Modifier
@@ -347,7 +345,7 @@ fun ReportsScreen(
                     backgroundColor = redGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.discount),
-                    value = "${formattedDiscount}€"
+                    value = "${discount.toTwoDecimals()} €"
                 )
             }
             Spacer(

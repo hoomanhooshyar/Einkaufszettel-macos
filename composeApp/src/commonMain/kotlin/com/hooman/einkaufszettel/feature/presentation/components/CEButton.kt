@@ -3,12 +3,14 @@ package com.hooman.einkaufszettel.feature.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -23,9 +25,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.doublePreferencesKey
+import com.hooman.einkaufszettel.core.presentation.AppDimens
 
 /**
  * CE = Customized Einkaufszettel
@@ -42,44 +46,36 @@ fun CEButton(
 
 ) {
     Button(
-        modifier = modifier,
+        modifier = modifier
+            .background(containerColor, shape = RoundedCornerShape(12.dp)),
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor=Color.Transparent)
-    ){
-        Box(
-            modifier = Modifier
-                .background(containerColor, shape = RoundedCornerShape(8.dp))
-                .then(modifier),
-            contentAlignment = Alignment.Center,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(horizontal = AppDimens.spacingMedium, vertical = 12.dp)
+    ) {
 
-        ){
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                if(icon != null){
-                    Icon(
-                        modifier = Modifier.size(20.dp),
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = contentColor
-                        )
-                    Spacer(
-                        modifier = Modifier.width(16.dp)
-                    )
-                }
-
-                Text(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    text = text,
-                    fontSize = 20.sp,
-                    color = contentColor
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = contentColor
                 )
+                Spacer(modifier = Modifier.width(8.dp))
             }
 
+            Text(
+                text = text,
+                fontSize = 20.sp,
+                color = contentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
+
+
     }
 }

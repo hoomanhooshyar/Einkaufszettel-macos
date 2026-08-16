@@ -14,12 +14,16 @@ import com.hooman.einkaufszettel.data.repository.FirebaseProductRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.FirebaseShoppingItemRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.LocalAssetsRepositoryImpl
 import com.hooman.einkaufszettel.data.repository.LocalRepositoryImpl
+import com.hooman.einkaufszettel.data.repository.SettingsPreferencesImpl
+import com.hooman.einkaufszettel.data.repository.SyncRepositoryImpl
 import com.hooman.einkaufszettel.domain.repository.AuthRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseBillRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseProductRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseShoppingItemRepository
 import com.hooman.einkaufszettel.domain.repository.LocalAssetsRepository
 import com.hooman.einkaufszettel.domain.repository.LocalRepository
+import com.hooman.einkaufszettel.domain.repository.SettingsPreferences
+import com.hooman.einkaufszettel.domain.repository.SyncRepository
 import com.hooman.einkaufszettel.domain.source.FirebaseBillDataSource
 import com.hooman.einkaufszettel.domain.source.FirebaseProductDataSource
 import com.hooman.einkaufszettel.domain.source.FirebaseService
@@ -40,6 +44,9 @@ import com.hooman.einkaufszettel.domain.usecase.GetAllShoppingItemsByUserIdFromR
 import com.hooman.einkaufszettel.domain.usecase.GetAvailableProductsForShoppingItemFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetBillByNameFromLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetBillByNameFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetBillUnSyncDataFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetBillsByDateFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetCheckedProductsForShoppingItemFromLocal
 import com.hooman.einkaufszettel.domain.usecase.GetProductByIdFromLocalUseCase
@@ -49,20 +56,27 @@ import com.hooman.einkaufszettel.domain.usecase.GetProductByNameFromRemoteUseCas
 import com.hooman.einkaufszettel.domain.usecase.GetProductForShoppingItemFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetProductIconsFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetProductIconsFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetProductUnSyncDataFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetShoppingItemByBillIdFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetShoppingItemByBillIdFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetShoppingItemUnSyncDataFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertBillToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertBillToRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.InsertProductListToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.SyncDatabaseUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateBillSyncDataUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateProductSyncDataUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemDiscountInLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemDiscountInRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemSyncDataUseCase
 import com.hooman.einkaufszettel.feature.presentation.add_product.AddProductViewModel
 import com.hooman.einkaufszettel.feature.presentation.add_shopping_item.AddShoppingItemViewModel
 import com.hooman.einkaufszettel.feature.presentation.create_bill.CreateBillViewModel
@@ -73,6 +87,7 @@ import com.hooman.einkaufszettel.feature.presentation.main.MainViewModel
 import com.hooman.einkaufszettel.feature.presentation.product.ProductViewModel
 import com.hooman.einkaufszettel.feature.presentation.report.ReportsViewModel
 import com.hooman.einkaufszettel.feature.presentation.settings.SettingsViewModel
+import com.hooman.einkaufszettel.feature.presentation.start.StartViewModel
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.FirebaseAuth
 import dev.gitlive.firebase.auth.auth
@@ -85,6 +100,27 @@ import org.koin.dsl.module
 expect val platformModule: Module
 val sharedModule = module {
 
+
+
+
+    //Database
+    single<AppDatabase> {
+        DatabaseConstructor.initialize()
+    }
+
+    single {
+        get<DatabaseFactory>().create()
+            .setDriver(BundledSQLiteDriver())
+            .build()
+    }
+
+    single {
+        get<AppDatabase>().dao
+    }
+
+}
+
+val repositoryModule = module {
     //Firebase
 
     single<FirebaseService> { FirebaseServiceImpl() }
@@ -105,24 +141,11 @@ val sharedModule = module {
     singleOf(::FirebaseShoppingItemRepositoryImpl).bind<FirebaseShoppingItemRepository>()
     singleOf(::LocalRepositoryImpl).bind<LocalRepository>()
     singleOf(::LocalAssetsRepositoryImpl).bind<LocalAssetsRepository>()
+    singleOf(::SettingsPreferencesImpl).bind<SettingsPreferences>()
+    singleOf(::SyncRepositoryImpl).bind<SyncRepository>()
+}
 
-
-    //Database
-    single<AppDatabase> {
-        DatabaseConstructor.initialize()
-    }
-
-    single {
-        get<DatabaseFactory>().create()
-            .setDriver(BundledSQLiteDriver())
-            .build()
-    }
-
-    single {
-        get<AppDatabase>().dao
-    }
-
-    //ViewModels
+val viewModelModule = module {
     viewModelOf(::HomeViewModel)
     viewModelOf(::CreateBillViewModel)
     viewModelOf(::ShoppingListDetailsViewModel)
@@ -134,10 +157,7 @@ val sharedModule = module {
     viewModelOf(::AddShoppingItemViewModel)
     viewModelOf(::AddProductViewModel)
     viewModelOf(::ReportsViewModel)
-
-
-
-
+    viewModelOf(::StartViewModel)
 }
 
 val useCaseModule = module {
@@ -152,6 +172,10 @@ val useCaseModule = module {
     factory { InsertBillToLocalUseCase(get()) }
     factory { InsertBillToRemoteUseCase(get()) }
     factory { GetBillsByDateFromLocalUseCase(get()) }
+    factory { GetBillUnSyncDataFromLocalUseCase(get()) }
+    factory { UpdateBillSyncDataUseCase(get()) }
+    factory { GetBillByNameFromLocalUseCase(get()) }
+    factory { GetBillByNameFromRemoteUseCase(get()) }
 
     //Product
     factory { DeleteProductFromLocalUseCase(get()) }
@@ -167,6 +191,9 @@ val useCaseModule = module {
     factory { GetAvailableProductsForShoppingItemFromLocalUseCase(get()) }
     factory { GetProductIconsFromRemoteUseCase(get()) }
     factory { GetProductIconsFromLocalUseCase(get()) }
+    factory { GetProductUnSyncDataFromLocalUseCase(get()) }
+    factory { UpdateProductSyncDataUseCase(get()) }
+    factory { InsertProductListToLocalUseCase(get()) }
 
     //ShoppingItem
     factory { DeleteShoppingItemFromLocalUseCase(get()) }
@@ -186,5 +213,10 @@ val useCaseModule = module {
     factory { DeleteShoppingItemByProductAndBillFromRemoteUseCase(get()) }
     factory { UpdateShoppingItemDiscountInRemoteUseCase(get()) }
     factory { UpdateShoppingItemDiscountInLocalUseCase(get()) }
+    factory { GetShoppingItemUnSyncDataFromLocalUseCase(get()) }
+    factory { UpdateShoppingItemSyncDataUseCase(get()) }
+
+    //Sync Database Use Case
+    factory { SyncDatabaseUseCase(get()) }
 
  }

@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -30,13 +33,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.greenGradient
+import com.hooman.einkaufszettel.core.presentation.redColor
 import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.PurchaseType
 import com.hooman.einkaufszettel.domain.model.getDisplayTypename
@@ -47,8 +53,10 @@ import com.hooman.einkaufszettel.feature.utils.DateTime
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.bill_name
 import einkaufszettel.composeapp.generated.resources.bill_name_empty_error
+import einkaufszettel.composeapp.generated.resources.cancel
 import einkaufszettel.composeapp.generated.resources.created_date
 import einkaufszettel.composeapp.generated.resources.enter_bill_name
+import einkaufszettel.composeapp.generated.resources.save
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.stringResource
@@ -67,24 +75,42 @@ fun CreateBillScreenRoot(
     navController: NavHostController
 ) {
     val state by viewModel.createListState.collectAsState()
-    LaunchedEffect(state.error){
-        if(state.error != null){
-            snackBarHostState.showSnackbar(state.error.toString(), duration = SnackbarDuration.Short)
 
+    val snackMessage = state.error?.asString()
+
+    LaunchedEffect(snackMessage){
+        if(snackMessage != null){
+            snackBarHostState.showSnackbar(
+                message = snackMessage,
+                duration = SnackbarDuration.Short
+            )
         }
 
 
     }
-    CreateBillScreen(
-        contentPadding = contentPadding,
-        onCancel = onCancel,
-        background = backgroundGradient,
-        onSaved = {
-            viewModel.addBillIntoLocal(it)
-            navController.popBackStack()
-        },
-        snackBarHostState = snackBarHostState
-    )
+    if(state.isLoading){
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ){
+            CircularProgressIndicator(
+                color = redColor,
+            )
+        }
+    }else{
+        CreateBillScreen(
+            contentPadding = contentPadding,
+            onCancel = onCancel,
+            background = backgroundGradient,
+            onSaved = {
+                viewModel.addBillIntoLocal(it)
+                onSaved(it)
+            },
+            snackBarHostState = snackBarHostState
+        )
+    }
+
 }
 
 @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
@@ -113,7 +139,8 @@ fun CreateBillScreen(
                 .height(32.dp)
         )
         CETextField(
-            modifier = Modifier,
+            modifier = Modifier
+                .testTag("bill_date_input"),
             readOnly = false,
             value = formattedDate,
             onValueChange = {},
@@ -136,7 +163,8 @@ fun CreateBillScreen(
             keyboardType = KeyboardType.Text
         )
         CETextField(
-            modifier = Modifier,
+            modifier = Modifier
+                .testTag("bill_name_input"),
             value = billNameState,
             onValueChange = { billNameState = it },
             trailingIcon = {
@@ -160,7 +188,8 @@ fun CreateBillScreen(
                 .padding(
                     vertical = 16.dp,
                     horizontal = 8.dp
-                ),
+                )
+                .testTag("bill_type_combo"),
             items = billType,
             selectedItem = selectedType,
             onItemSelected = {selectedType = it},
@@ -173,15 +202,14 @@ fun CreateBillScreen(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ){
             val errorMessage = stringResource(Res.string.bill_name_empty_error)
             val scope = rememberCoroutineScope()
             CEButton(
                 modifier = Modifier
-                    .weight(1f),
+                    .testTag("bill_save_button"),
                 onClick = {
                     scope.launch {
                         val bill = Bill(
@@ -190,29 +218,31 @@ fun CreateBillScreen(
                             name = billNameState,
                             type = selectedType,
                             userId = "",
-                            items = emptyList()
+                            items = emptyList(),
+                            syncStatus = SyncStatus.LSL
                         )
                         if(bill.name.isEmpty() || bill.name.equals("")){
-
+                            println("❌ دیباگ فرم: اسم خالی بود! فرم متوقف شد.") // این خط را اضافه کنید
                             snackBarHostState.showSnackbar(errorMessage, duration = SnackbarDuration.Short)
                             return@launch
                         }
+                        println("✅ دیباگ فرم: اسم درست بود (${bill.name})، می‌رویم برای ذخیره.") // این خط را اضافه کنید
                         onSaved(bill)
                     }
 
                 },
                 icon = Icons.Default.Save,
-                text = "Save",
+                text = stringResource(Res.string.save),
                 contentColor = whiteColor,
                 containerColor = greenGradient
             )
 
             CEButton(
                 modifier = Modifier
-                    .weight(1f),
+                    .testTag("bill_cancel_button"),
                 onClick = onCancel,
                 icon = Icons.Default.Cancel,
-                text = "Cancel",
+                text = stringResource(Res.string.cancel),
                 contentColor = whiteColor,
                 containerColor = redGradient
             )

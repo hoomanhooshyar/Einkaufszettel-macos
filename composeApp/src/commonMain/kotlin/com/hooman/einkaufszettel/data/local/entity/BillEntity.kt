@@ -10,5 +10,6 @@ data class BillEntity(
     val id: String,
     val billDate: Instant,
     val name: String,
-    val type: String
+    val type: String,
+    val syncStatus: SyncStatus
 )

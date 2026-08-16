@@ -21,11 +21,13 @@ fun BillWithItemsAndProducts.toDomain(): Bill{
                 discount = shoppingItemWithProduct.item.discount,
                 billId = bill.id,
                 isChecked = shoppingItemWithProduct.item.isChecked,
-                userId = ""
+                userId = "",
+                syncStatus = shoppingItemWithProduct.item.syncStatus
             )
         },
         name = bill.name,
-        type = PurchaseType.valueOf(bill.type)
+        type = PurchaseType.valueOf(bill.type),
+        syncStatus = bill.syncStatus
 
     )
 }

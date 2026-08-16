@@ -38,4 +38,7 @@ interface Routes {
 
     @Serializable
     data class AddProduct(val productId: String? = null): Routes
+
+    @Serializable
+    data object Start: Routes
 }

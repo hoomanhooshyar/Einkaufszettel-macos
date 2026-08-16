@@ -11,6 +11,8 @@ import com.hooman.einkaufszettel.domain.usecase.DeleteBillFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteBillFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllBillsByUserIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllBillsFromLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetBillByNameFromLocalUseCase
+import com.hooman.einkaufszettel.domain.usecase.GetBillByNameFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertBillToLocalUseCase
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.bill_is_null
@@ -21,6 +23,7 @@ import einkaufszettel.composeapp.generated.resources.no_bills
 import einkaufszettel.composeapp.generated.resources.no_internet_error
 import einkaufszettel.composeapp.generated.resources.not_logged_in
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +35,8 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val getBillL: GetAllBillsFromLocalUseCase,
     private val getBillR: GetAllBillsByUserIdFromRemoteUseCase,
+    private val getBillNameL: GetBillByNameFromLocalUseCase,
+    private val getBillNameR: GetBillByNameFromRemoteUseCase,
     private val insertBillL: InsertBillToLocalUseCase,
     private val deleteBillL: DeleteBillFromLocalUseCase,
     private val deleteBillR: DeleteBillFromRemoteUseCase,
@@ -45,6 +50,8 @@ class HomeViewModel(
 
     private val _userId = MutableStateFlow(auth.getCurrentUserId())
     val userId = _userId.asStateFlow()
+
+    private var searchJob : Job? = null
 
     init {
         observeBills()
@@ -183,6 +190,51 @@ class HomeViewModel(
                 isLoading = false,
                 error = UiText.StringResourceId(Res.string.bill_remove_remote_success)
             )
+        }
+    }
+
+    fun searchBill(name: String) {
+
+        _state.value = _state.value.copy(searchQuery = name)
+
+        searchJob?.cancel()
+
+        if(name.isEmpty() || name == ""){
+            observeBills()
+            return
+        }
+
+        searchJob = viewModelScope.launch {
+            getBillNameL(name).collect { res ->
+                when (res) {
+                    is Resource.Success -> {
+                        var amount = 0.0
+                        if (res.data != null) {
+                            amount = calculateTotalAmount(res.data)
+                        }
+                        _state.value = _state.value.copy(
+                            bills = res.data ?: emptyList(),
+                            isLoading = false,
+                            error = null,
+                            totalAmount = amount
+                        )
+                    }
+
+                    is Resource.Loading -> {
+                        _state.value = _state.value.copy(
+                            error = null,
+                            isLoading = true
+                        )
+                    }
+
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = UiText.DynamicString(res.message!!)
+                        )
+                    }
+                }
+            }
         }
     }
 

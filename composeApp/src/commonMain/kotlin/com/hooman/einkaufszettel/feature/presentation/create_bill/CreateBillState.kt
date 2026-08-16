@@ -5,5 +5,6 @@ import com.hooman.einkaufszettel.domain.model.Bill
 
 data class CreateBillState(
     val isLoading: Boolean = false,
-    val error: UiText? = null
+    val error: UiText? = null,
+    val isSaved: Boolean = false
 )

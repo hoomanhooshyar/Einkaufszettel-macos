@@ -13,6 +13,7 @@ import com.hooman.einkaufszettel.data.local.converter.Converter
 import com.hooman.einkaufszettel.data.local.entity.BillEntity
 import com.hooman.einkaufszettel.data.local.entity.ProductEntity
 import com.hooman.einkaufszettel.data.local.entity.ShoppingItemEntity
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.data.local.relation.BillWithItemsAndProducts
 import com.hooman.einkaufszettel.domain.model.ShoppingDetails
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,10 @@ interface AppDao {
     @Transaction
     @Query("SELECT * FROM bill WHERE id = :id LIMIT 1")
     fun getBillById(id: String): Flow<BillWithItemsAndProducts?>
+
+    @Transaction
+    @Query("SELECT * FROM bill WHERE name LIKE '%' || :name || '%'")
+    fun getBillByName(name: String): Flow<List<BillWithItemsAndProducts>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShoppingItem(item: ShoppingItemEntity)
@@ -61,6 +66,7 @@ interface AppDao {
     @Query("""
         SELECT p.id as productId, p.image as productImage,
                 p.name as productName, p.price as productPrice,
+                si.billId as billId, si.syncStatus as syncStatus,
                 si.id as shoppingItemId, si.isChecked as isChecked,
                 si.itemCount as itemCount,
                 si.discount as discount
@@ -117,5 +123,62 @@ interface AppDao {
     @Transaction
     @Query("SELECT image FROM product")
     fun getProductIcons(): Flow<List<String>>
+
+    /*
+        Sync Queries
+    * */
+
+    //**************Bill Entity****************
+    @Query(" SELECT * FROM bill WHERE syncStatus != :syncStatus")
+    fun getBillUnSyncData(syncStatus: SyncStatus = SyncStatus.SUCCESS): Flow<List<BillEntity>>
+
+    //Update SyncStatus
+    @Query("UPDATE bill SET syncStatus = :syncStatus WHERE id = :billId")
+    suspend fun updateBillSyncStatus(billId: String, syncStatus: SyncStatus)
+
+    //Insert a List
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBillList(bills: List<BillEntity>)
+
+    //***********************Product Entity*******************
+    @Query(" SELECT * FROM product WHERE syncStatus != :syncStatus")
+    fun getProductUnSyncData(syncStatus: SyncStatus = SyncStatus.SUCCESS): Flow<List<ProductEntity>>
+
+    //Update SyncStatus
+    @Query("UPDATE product SET syncStatus = :syncStatus WHERE id = :productId")
+    suspend fun updateProductSyncStatus(productId: String, syncStatus: SyncStatus)
+
+    //Insert a List
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertProductList(products: List<ProductEntity>)
+
+    //***********************ShoppingItem Entity*******************
+    @Query("""
+    SELECT 
+        s.id AS shoppingItemId, 
+        s.billId AS billId,
+        s.discount AS discount,
+        s.isChecked AS isChecked,
+        s.itemCount AS itemCount,
+        s.syncStatus AS syncStatus,
+        
+        p.id AS productId,
+        p.image AS productImage,
+        p.name AS productName,
+        p.price AS productPrice
+        
+    FROM shopping_items s
+    INNER JOIN product p ON s.productId = p.id
+    WHERE s.syncStatus != :syncStatus
+""")
+    fun getShoppingItemUnSyncData(syncStatus: SyncStatus = SyncStatus.SUCCESS): Flow<List<ShoppingDetails>>
+
+    //Update SyncStatus
+    @Query("UPDATE shopping_items SET syncStatus = :syncStatus WHERE id = :itemId")
+    suspend fun updateShoppingItemSyncStatus(itemId: String, syncStatus: SyncStatus)
+
+    //Insert List
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertItemList(items: List<ShoppingItemEntity>)
 
 }

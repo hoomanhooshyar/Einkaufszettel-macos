@@ -7,5 +7,6 @@ interface FirebaseBillDataSource {
     suspend fun insertBill(bill: Bill)
     fun getAllBillsByUserId(userId: String): Flow<List<Bill>>
     fun getBillById(billId: String): Flow<Bill?>
+    fun getBillByName(name: String): Flow<List<Bill>>
     suspend fun deleteBill(billId: String)
 }

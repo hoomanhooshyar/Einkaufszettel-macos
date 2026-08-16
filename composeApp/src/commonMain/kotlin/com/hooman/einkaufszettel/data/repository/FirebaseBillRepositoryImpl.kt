@@ -51,6 +51,19 @@ class FirebaseBillRepositoryImpl(
 
     }
 
+    override fun getBillByName(name: String): Flow<Resource<List<Bill>>> {
+        return dataSource.getBillByName(name)
+            .map { bills ->
+                Resource.Success(bills) as Resource<List<Bill>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
+    }
+
     override suspend fun deleteBill(billId: String): Resource<Unit> {
         return try {
             dataSource.deleteBill(billId)

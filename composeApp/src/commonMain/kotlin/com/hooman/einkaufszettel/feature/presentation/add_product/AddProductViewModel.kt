@@ -8,6 +8,7 @@ import com.hooman.einkaufszettel.app.Routes
 import com.hooman.einkaufszettel.core.network.ConnectivityObserver
 import com.hooman.einkaufszettel.core.presentation.UiText
 import com.hooman.einkaufszettel.core.util.Resource
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.repository.AuthRepository
 import com.hooman.einkaufszettel.domain.usecase.GetProductByIdFromLocalUseCase
@@ -15,9 +16,12 @@ import com.hooman.einkaufszettel.domain.usecase.GetProductIconsFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetProductIconsFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.SyncDatabaseUseCase
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.data_save_just_in_local
 import einkaufszettel.composeapp.generated.resources.item_added_successfully
+import einkaufszettel.composeapp.generated.resources.product_added_successfully
+import einkaufszettel.composeapp.generated.resources.unknown_error
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -28,18 +32,19 @@ import kotlin.uuid.Uuid
 class AddProductViewModel(
     private val savedStateHandle: SavedStateHandle,//این رو اضافه کردم
     private val insertProductL: InsertProductToLocalUseCase,
-    private val insertProductR: InsertProductToRemoteUseCase,
+    private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val authRepository: AuthRepository,
     private val observer: ConnectivityObserver,
     private val productIconsR: GetProductIconsFromRemoteUseCase,
     private val productIconsL: GetProductIconsFromLocalUseCase,
     private val getProductL: GetProductByIdFromLocalUseCase //این رو اضافه کردم
-): ViewModel() {
+) : ViewModel() {
     private val _addProductState = MutableStateFlow(AddProductState())
     val addProductState = _addProductState.asStateFlow()
 
     private val _userId = authRepository.getCurrentUserId()
-    private val oldProductId = savedStateHandle.toRoute<Routes.AddProduct>().productId //این رو اضافه کردم
+    private val oldProductId =
+        savedStateHandle.toRoute<Routes.AddProduct>().productId //این رو اضافه کردم
 
     init {
         getProduct()
@@ -48,7 +53,7 @@ class AddProductViewModel(
 
     @OptIn(ExperimentalUuidApi::class)
     fun addProduct(
-        productName:String,
+        productName: String,
         productPrice: String,
         productImage: String
     ) {
@@ -57,52 +62,38 @@ class AddProductViewModel(
                 error = null,
                 isLoading = true
             )
-            val productId: String = if(oldProductId.isNullOrEmpty()){
+            val productId: String = if (oldProductId.isNullOrEmpty()) {
                 Uuid.random().toString()
-            }else{
+            } else {
                 oldProductId
             }
             val product = Product(
                 id = productId,
                 name = productName,
-                price = productPrice.replace(",",".").toDoubleOrNull() ?: 0.0,
+                price = productPrice.replace(",", ".").toDoubleOrNull() ?: 0.0,
                 image = productImage,
-                userId = _userId!!
+                userId = if(_userId.isNullOrEmpty()) "" else _userId,
+                syncStatus = SyncStatus.LSL
             )
             val localResult = insertProductL(product)
-            if(localResult is Resource.Error) {
-                _addProductState.value = _addProductState.value.copy(
-                    isLoading = false,
-                    error = UiText.DynamicString(localResult.message!!)
-                )
-                return@launch
-            }
-            val online = observer.isConnected.first()
-            if(!online){
-                _addProductState.value = _addProductState.value.copy(
-                    error = UiText.StringResourceId(Res.string.data_save_just_in_local),
-                    isLoading = false
-                )
-                return@launch
-            }
-
-            val remoteResult = insertProductR(product)
-
-            when(remoteResult){
+            when(localResult){
                 is Resource.Success ->{
                     _addProductState.value = _addProductState.value.copy(
                         isLoading = false,
-                        error = UiText.StringResourceId(Res.string.item_added_successfully)
+                        error = UiText.StringResourceId(Res.string.product_added_successfully)
                     )
+
+                    triggerBackgroundSync()
                 }
+                is Resource.Loading ->{}
                 is Resource.Error ->{
                     _addProductState.value = _addProductState.value.copy(
                         isLoading = false,
-                        error = UiText.DynamicString(remoteResult.message!!)
+                        error = UiText.StringResourceId(Res.string.unknown_error)
                     )
                 }
-                else ->{}
             }
+
         }
     }
 
@@ -168,25 +159,27 @@ class AddProductViewModel(
     }
 
     //این رو اضافه کردم
-    fun getProduct(){
-        if(oldProductId != null){
+    fun getProduct() {
+        if (oldProductId != null) {
             viewModelScope.launch {
                 getProductL(oldProductId).collect { res ->
-                    when(res){
-                        is Resource.Success ->{
+                    when (res) {
+                        is Resource.Success -> {
                             _addProductState.value = _addProductState.value.copy(
                                 isLoading = false,
                                 error = null,
                                 oldProduct = res.data
                             )
                         }
-                        is Resource.Loading ->{
+
+                        is Resource.Loading -> {
                             _addProductState.value = _addProductState.value.copy(
                                 isLoading = true,
                                 error = null
                             )
                         }
-                        is Resource.Error ->{
+
+                        is Resource.Error -> {
                             _addProductState.value = _addProductState.value.copy(
                                 error = UiText.DynamicString(res.message!!),
                                 isLoading = false
@@ -198,9 +191,19 @@ class AddProductViewModel(
         }
     }
 
-    fun clearError(){
+    fun clearError() {
         _addProductState.value = _addProductState.value.copy(
             error = null
         )
+    }
+
+    private fun triggerBackgroundSync(){
+        viewModelScope.launch {
+            try {
+                syncDatabaseUseCase()
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
     }
 }

@@ -9,5 +9,6 @@ interface FirebaseBillRepository {
     suspend fun insertBill(bill: Bill): Resource<Unit>
     fun getAllBillsByUserId(userId: String): Flow<Resource<List<Bill>>>
     fun getBillById(billId: String): Flow<Resource<Bill>>
+    fun getBillByName(name: String): Flow<Resource<List<Bill>>>
     suspend fun deleteBill(billId: String): Resource<Unit>
 }

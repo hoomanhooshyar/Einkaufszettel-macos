@@ -2,6 +2,8 @@ package com.hooman.einkaufszettel.data.repository
 
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.data.local.dao.AppDao
+import com.hooman.einkaufszettel.data.local.entity.ShoppingItemEntity
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.data.mapper.toDomain
 import com.hooman.einkaufszettel.data.mapper.toEntity
 import com.hooman.einkaufszettel.data.mapper.toProduct
@@ -43,6 +45,19 @@ class LocalRepositoryImpl(
                 emit(Resource.Loading())
             }
             .catch { e ->
+                emit(Resource.Error(e.message))
+            }
+    }
+
+    override fun getBillByName(name: String): Flow<Resource<List<Bill>>> {
+        return dao.getBillByName(name)
+            .map { bills ->
+                Resource.Success(data = bills.map { it.toDomain() }) as Resource<List<Bill>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch {e ->
                 emit(Resource.Error(e.message))
             }
     }
@@ -256,6 +271,113 @@ class LocalRepositoryImpl(
     ): Resource<Unit> {
         return try {
             dao.updateShoppingItemDiscount(shoppingItemId, discount)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override fun getBillUnSyncData(syncStatus: SyncStatus): Flow<Resource<List<Bill>>> {
+        return dao.getBillUnSyncData(syncStatus)
+            .map { unSyncBills ->
+                Resource.Success(data = unSyncBills.map { it.toDomain() }) as Resource<List<Bill>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
+    }
+
+    override suspend fun updateBillSyncStatus(
+        billId: String,
+        syncStatus: SyncStatus
+    ): Resource<Unit> {
+        return try {
+            dao.updateBillSyncStatus(billId, syncStatus)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override fun getProductUnSyncData(syncStatus: SyncStatus): Flow<Resource<List<Product>>> {
+        return dao.getProductUnSyncData(syncStatus)
+            .map { unSyncProduct ->
+                Resource.Success(data = unSyncProduct.map { it.toProduct() }) as Resource<List<Product>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
+    }
+
+    override suspend fun updateProductSyncStatus(
+        productId: String,
+        syncStatus: SyncStatus
+    ): Resource<Unit> {
+        return try {
+            dao.updateProductSyncStatus(productId, syncStatus)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override fun getShoppingItemUnSyncData(syncStatus: SyncStatus): Flow<Resource<List<ShoppingDetails>>> {
+        return dao.getShoppingItemUnSyncData(syncStatus)
+            .map { unSyncItems ->
+                Resource.Success(data = unSyncItems) as Resource<List<ShoppingDetails>>
+            }
+            .onStart {
+                emit(Resource.Loading())
+            }
+            .catch { e ->
+                emit(Resource.Error(e.message))
+            }
+    }
+
+    override suspend fun updateShoppingItemSyncStatus(
+        itemId: String,
+        syncStatus: SyncStatus
+    ): Resource<Unit> {
+        return try {
+            dao.updateShoppingItemSyncStatus(itemId, syncStatus)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun insertItemList(
+        items: List<ShoppingItem>
+    ): Resource<Unit> {
+        return try {
+            val entities = items.map { it.toEntity() }
+            dao.insertItemList(entities)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun insertBillList(bills: List<Bill>): Resource<Unit> {
+        return try {
+            val entities = bills.map { it.toEntity() }
+            dao.insertBillList(entities)
+            Resource.Success(Unit)
+        }catch (e: Exception){
+            Resource.Error(e.message)
+        }
+    }
+
+    override suspend fun insertProductList(products: List<Product>): Resource<Unit> {
+        return try {
+            val entities = products.map { it.toProductEntity() }
+            dao.insertProductList(entities)
             Resource.Success(Unit)
         }catch (e: Exception){
             Resource.Error(e.message)

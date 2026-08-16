@@ -1,5 +1,7 @@
 package com.hooman.einkaufszettel.domain.model
 
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
+
 data class ShoppingItem(
     val id: String,
     val billId: String,
@@ -10,5 +12,6 @@ data class ShoppingItem(
     val productPrice: Double,
     val productImage: String?,
     val isChecked: Boolean,
-    val userId: String
+    val userId: String,
+    val syncStatus: SyncStatus
 )

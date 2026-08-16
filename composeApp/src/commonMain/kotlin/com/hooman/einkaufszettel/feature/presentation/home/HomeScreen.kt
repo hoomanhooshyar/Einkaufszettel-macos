@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -24,16 +27,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.hooman.einkaufszettel.app.Routes
 import com.hooman.einkaufszettel.core.presentation.AppDimens
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
+import com.hooman.einkaufszettel.core.presentation.blackColor
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
 import com.hooman.einkaufszettel.core.presentation.purpleGradient
@@ -41,10 +48,13 @@ import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.core.util.toTwoDecimals
 import com.hooman.einkaufszettel.domain.model.Bill
+import com.hooman.einkaufszettel.feature.presentation.components.CETextField
 import com.hooman.einkaufszettel.feature.presentation.home.components.HomeItem
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.gesamt
 import einkaufszettel.composeapp.generated.resources.no_bills
+import einkaufszettel.composeapp.generated.resources.search
+import einkaufszettel.composeapp.generated.resources.total
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -75,7 +85,11 @@ fun HomeScreenRoot(
         onDelete = {
             viewModel.deleteBill(it)
         },
-        totalAmount = state.totalAmount
+        totalAmount = state.totalAmount,
+        onSearch = { name ->
+            viewModel.searchBill(name)
+        },
+        searchQuery = state.searchQuery
     )
 }
 
@@ -88,14 +102,11 @@ fun HomeScreen(
     bills: List<Bill> = emptyList(),
     navController: NavHostController,
     onDelete: (Bill) -> Unit,
-    totalAmount: Double
+    onSearch: (String) -> Unit,
+    totalAmount: Double,
+    searchQuery: String?
 ) {
-
-
-
-
-
-
+    var billName by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -110,7 +121,7 @@ fun HomeScreen(
 
             ) {
                 Text(
-                    text = stringResource(Res.string.gesamt),
+                    text = stringResource(Res.string.total),
                     color = whiteColor,
                     style = MaterialTheme.typography.titleLarge,
                 )
@@ -123,6 +134,34 @@ fun HomeScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
             }
+            CETextField(
+                modifier = Modifier,
+                value = searchQuery ?: "",
+                onValueChange = {
+                    onSearch(it)
+                                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null
+                    )
+
+                },
+                label = {
+                    Text(
+                        text = stringResource(Res.string.search)
+                    )
+                },
+                placeholder = {
+                    Text(
+                        text = stringResource(Res.string.search) + ",,,"
+                    )
+                },
+                readOnly = false,
+                textColor = blackColor,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search
+            )
             if(bills.isEmpty()){
                 Column(
                     modifier = Modifier

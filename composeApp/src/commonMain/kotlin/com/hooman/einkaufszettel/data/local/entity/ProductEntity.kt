@@ -10,4 +10,5 @@ data class ProductEntity(
     val name: String,
     val image: String?,
     val price: Double,
+    val syncStatus: SyncStatus
 )

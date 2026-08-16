@@ -6,11 +6,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.hooman.einkaufszettel.core.presentation.navigateSingleTopTo
 import com.hooman.einkaufszettel.feature.presentation.main.utils.BottomItem
 import com.hooman.einkaufszettel.feature.presentation.main.utils.selectedTabQualifiedName
+import einkaufszettel.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BottomBar(
@@ -30,8 +33,13 @@ fun BottomBar(
                 onClick = {
                     navController.navigateSingleTopTo(item.route)
                 },
-                icon = {Icon(imageVector = item.icon, contentDescription = item.label)},
-                label = { Text(item.label) }
+                icon = {Icon(imageVector = item.icon, contentDescription = stringResource(item.label))},
+                label = { Text(
+                    text = stringResource(item.label),
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                ) }
             )
         }
     }

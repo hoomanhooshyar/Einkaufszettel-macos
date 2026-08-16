@@ -28,6 +28,7 @@ import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.orangeGradient
 import com.hooman.einkaufszettel.core.presentation.purpleGradient
 import com.hooman.einkaufszettel.core.presentation.redGradient
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import com.hooman.einkaufszettel.feature.presentation.components.CECheckListItem
@@ -55,6 +56,7 @@ fun AddShoppingItemScreenRoot(
                 message = error,
                 duration = SnackbarDuration.Long
             )
+            viewModel.clearError()
         }
     }
     AddShoppingItemScreen(
@@ -78,7 +80,8 @@ fun AddShoppingItemScreenRoot(
                     productImage = product.image,
                     discount = 0f,
                     isChecked = false,
-                    userId = viewModel.userId.value!!
+                    userId = viewModel.userId.value!!,
+                    syncStatus = SyncStatus.LSL
                 )
                 viewModel.insertShoppingItemIntoBill(shoppingItem)
             }else{

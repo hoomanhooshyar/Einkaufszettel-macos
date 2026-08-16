@@ -1,6 +1,7 @@
 package com.hooman.einkaufszettel.domain.repository
 
 import com.hooman.einkaufszettel.core.util.Resource
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.model.ShoppingDetails
@@ -12,6 +13,8 @@ import kotlin.time.ExperimentalTime
 interface LocalRepository {
     fun getAllBills(): Flow<Resource<List<Bill>>>
     fun getBillById(billId: String): Flow<Resource<Bill>>
+
+    fun getBillByName(name: String): Flow<Resource<List<Bill>>>
 
     fun getBillByDate(startDate: Long, endDate: Long): Flow<Resource<List<Bill>>>
     suspend fun insertBill(bill: Bill): Resource<Unit>
@@ -39,4 +42,23 @@ interface LocalRepository {
     suspend fun updateSHoppingItemCount(shoppingItemId: String, itemCount: Int): Resource<Unit>
 
     suspend fun updateShoppingItemDiscount(shoppingItemId: String, discount: Float): Resource<Unit>
+
+    fun getBillUnSyncData(syncStatus: SyncStatus = SyncStatus.SUCCESS): Flow<Resource<List<Bill>>>
+
+    suspend fun updateBillSyncStatus(billId: String, syncStatus: SyncStatus): Resource<Unit>
+
+    fun getProductUnSyncData(syncStatus: SyncStatus = SyncStatus.SUCCESS): Flow<Resource<List<Product>>>
+
+    suspend fun updateProductSyncStatus(productId: String, syncStatus: SyncStatus): Resource<Unit>
+
+    fun getShoppingItemUnSyncData(syncStatus: SyncStatus = SyncStatus.SUCCESS): Flow<Resource<List<ShoppingDetails>>>
+    suspend fun updateShoppingItemSyncStatus(itemId: String, syncStatus: SyncStatus): Resource<Unit>
+
+    suspend fun insertItemList(items: List<ShoppingItem>): Resource<Unit>
+
+    suspend fun insertBillList(bills: List<Bill>): Resource<Unit>
+
+    suspend fun insertProductList(products: List<Product>): Resource<Unit>
+
+
 }

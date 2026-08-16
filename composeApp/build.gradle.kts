@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalComposeLibrary::class)
+
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -133,16 +136,46 @@ kotlin {
 
             api(libs.datastore)
             api(libs.datastore.preferences)
+            implementation(libs.datastore.preferences.core)
 
 
 
         }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.turbine)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(compose.uiTest)
+        }
+
+        androidUnitTest.dependencies {
+            implementation(libs.mockk)
+            implementation(libs.junit)
+            implementation(libs.androidx.junit.v130)
+        }
+
+
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.junit)
+                implementation(libs.androidx.junit.v130)
+                implementation(libs.androidx.ui.test.junit4)
+                implementation(libs.androidx.ui.test.manifest)
+                implementation(libs.androidx.espresso.core)
+            }
+        }
+
+
         nativeMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
     }
-
-
+    sourceSets.androidInstrumentedTest.dependencies {
+        implementation(kotlin("test"))
+        implementation(libs.koin.test)
+    }
 
 
 }
@@ -157,6 +190,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -185,4 +219,5 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     debugImplementation(compose.uiTooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }
