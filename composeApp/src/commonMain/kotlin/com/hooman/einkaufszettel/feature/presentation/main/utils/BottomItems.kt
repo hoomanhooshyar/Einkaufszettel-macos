@@ -1,6 +1,7 @@
 package com.hooman.einkaufszettel.feature.presentation.main.utils
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DataThresholding
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -17,7 +18,7 @@ object BottomItems {
     fun default() = listOf(
         BottomItem(Routes.Home, Res.string.home, Icons.Default.Home),
         BottomItem(Routes.Products, Res.string.product, Icons.Default.ShoppingCart),
-        BottomItem(Routes.Reports, Res.string.reports, Icons.Default.Home),
+        BottomItem(Routes.Reports, Res.string.reports, Icons.Default.DataThresholding),
         BottomItem(Routes.Settings, Res.string.settings, Icons.Default.Settings)
     )
 }
