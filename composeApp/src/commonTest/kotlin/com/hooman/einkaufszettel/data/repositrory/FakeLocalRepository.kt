@@ -44,6 +44,17 @@ class FakeLocalRepository: LocalRepository {
         }
     }
 
+    override fun getBillByName(name: String): Flow<Resource<List<Bill>>> {
+        return bills.map { currentBills ->
+            if(shouldErrorThrow){
+                Resource.Error(error)
+            }else{
+                val bill = currentBills.filter { it.name.contains(name) }
+                Resource.Success(data = bill)
+            }
+        }
+    }
+
     override fun getBillByDate(
         startDate: Long,
         endDate: Long

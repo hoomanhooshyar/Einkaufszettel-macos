@@ -5,7 +5,6 @@ import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.repository.FirebaseBillRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
@@ -14,11 +13,14 @@ class FakeFirebaseBillRepository: FirebaseBillRepository {
     var hasInternet = true
     var shouldErrorThrow = false
 
+    val noInternetError = "No Internet Connection"
+    val firebaseError = "Firebase Server Error"
+
     val remoteBills = MutableStateFlow<List<Bill>>(emptyList())
 
     override suspend fun insertBill(bill: Bill): Resource<Unit> {
-        if(!hasInternet) return Resource.Error("No Internet Connection")
-        if(shouldErrorThrow) return Resource.Error("Firebase Server Error")
+        if(!hasInternet) return Resource.Error(noInternetError)
+        if(shouldErrorThrow) return Resource.Error(firebaseError)
 
         remoteBills.update { currentBills ->
             currentBills.filterNot { it.id == bill.id } + bill
@@ -29,9 +31,9 @@ class FakeFirebaseBillRepository: FirebaseBillRepository {
     override fun getAllBillsByUserId(userId: String): Flow<Resource<List<Bill>>> {
         return remoteBills.map { bills ->
             if(!hasInternet){
-                Resource.Error("No Internet Connection")
+                Resource.Error(noInternetError)
             }else if(shouldErrorThrow){
-                Resource.Error("Firebase Server Error")
+                Resource.Error(firebaseError)
             }else{
                 val userBills = bills.filter { it.userId == userId }
                 Resource.Success(userBills)
@@ -42,12 +44,25 @@ class FakeFirebaseBillRepository: FirebaseBillRepository {
     override fun getBillById(billId: String): Flow<Resource<Bill>> {
         return remoteBills.map { bills ->
             if(!hasInternet){
-                Resource.Error("No Internet Connection")
+                Resource.Error(noInternetError)
             }else if(shouldErrorThrow){
-                Resource.Error("Firebase Server  has Error")
+                Resource.Error(firebaseError)
             }else{
                 val bill = bills.filter { it.id == billId }
                 Resource.Success(bill.first())
+            }
+        }
+    }
+
+    override fun getBillByName(name: String): Flow<Resource<List<Bill>>> {
+        return remoteBills.map { bills ->
+            if(!hasInternet){
+                Resource.Error(noInternetError)
+            }else if(shouldErrorThrow){
+                Resource.Error(firebaseError)
+            }else{
+                val bill = bills.filter { it.name.contains(name) }
+                Resource.Success(data = bill)
             }
         }
     }
