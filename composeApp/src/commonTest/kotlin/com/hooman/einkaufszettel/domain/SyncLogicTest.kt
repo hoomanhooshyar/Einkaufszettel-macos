@@ -7,5 +7,5 @@ import com.hooman.einkaufszettel.domain.repository.LocalRepository
 class SyncLogicTest{
     private lateinit var dao: FakeAppDao
 
-    private lateinit var localRepository = FakeLocalRepository()
+    private lateinit var localRepository: FakeLocalRepository
 }
