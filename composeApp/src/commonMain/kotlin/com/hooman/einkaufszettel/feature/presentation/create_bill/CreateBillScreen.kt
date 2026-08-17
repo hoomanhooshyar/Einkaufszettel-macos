@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.hooman.einkaufszettel.core.presentation.AppDimens
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.greenGradient
 import com.hooman.einkaufszettel.core.presentation.redColor
@@ -236,6 +238,8 @@ fun CreateBillScreen(
                 contentColor = whiteColor,
                 containerColor = greenGradient
             )
+
+            Spacer(modifier = Modifier.width(AppDimens.spacingMedium))
 
             CEButton(
                 modifier = Modifier

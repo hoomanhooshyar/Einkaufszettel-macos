@@ -6,6 +6,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -53,11 +54,11 @@ fun <T> CEComboBox(
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
                 focusedBorderColor = whiteColor,
                 unfocusedBorderColor = whiteColor,
-                focusedTextColor = whiteColor,
-                unfocusedTextColor = whiteColor,
-                cursorColor = whiteColor,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent
+                focusedTextColor = blackColor,
+                unfocusedTextColor = blackColor,
+                cursorColor = blackColor,
+                focusedContainerColor = whiteColor,
+                unfocusedContainerColor = whiteColor
             ),
             shape = dropDownShape,
             modifier = modifier
@@ -72,16 +73,19 @@ fun <T> CEComboBox(
             onDismissRequest = {expanded = false},
             modifier = Modifier
                 .background(
-                    brush = background,
+                    color = whiteColor,
                     shape = dropDownShape
                 )
         ){
             items.forEach { item ->
                 DropdownMenuItem(
+                    trailingIcon = {
+
+                    },
                     text = {
                         Text(
                             text = itemLabel(item),
-                            color = whiteColor
+                            color = blackColor
                         )
                     },
                     onClick = {
