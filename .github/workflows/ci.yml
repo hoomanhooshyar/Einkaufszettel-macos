@@ -1,14 +1,21 @@
-name: Android CI
+name: Android CI/CD
 
+# این اکشن روی شاخه اصلی و همچنین وقتی تگ ورژن (مثل v1.0.0) می‌زنیم اجرا می‌شود
 on:
   push:
     branches: [ "master", "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "master", "main" ]
 
+# گیت‌هاب برای ساخت ریلیز به دسترسی نوشتن نیاز دارد
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build & Test
+    name: Build, Test & Release
     runs-on: ubuntu-latest
 
     steps:
@@ -31,9 +38,16 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-     # Save the exported file
-      - name: Upload APK
+      # مرحله CI: ذخیره فایل برای دانلود موقت
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Einkaufszettel-Debug-APK
           path: '**/*.apk'
+
+      # مرحله CD: ساخت ریلیز رسمی (فقط وقتی تگ ورژن بزنیم اجرا می‌شود)
+      - name: Publish Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '**/*.apk'
