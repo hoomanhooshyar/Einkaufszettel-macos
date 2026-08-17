@@ -1,6 +1,5 @@
 name: Android CI
 
-# This action runs when a push or pull request occurs.
 on:
   push:
     branches: [ "master", "main" ]
@@ -13,11 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-     # Get the codes from Github
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Install JDK 17 on Linux Server to developing the code
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -25,14 +22,18 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-     #Getting permission to execute gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-     # Execute Unit Tests that has been written
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
-     # Create APK file in Debug mode
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
+
+     # Save the exported file
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Einkaufszettel-Debug-APK
+          path: '**/*.apk'
