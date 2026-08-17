@@ -4,7 +4,7 @@
 ![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-000000.svg?style=for-the-badge&logo=jetpackcompose&logoColor=white)
 ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)
 ![Koin](https://img.shields.io/badge/Koin-FF3254?style=for-the-badge&logo=kotlin&logoColor=white)
-![Android CI](https://github.com/hoomanhooshyar/einkaufszettel/actions/workflows/ci.yml/badge.svg)
+![Android CI](https://github.com/hoomanhooshyar/Einkaufszettel-macos/actions/workflows/ci.yml/badge.svg)
 
 Eine moderne, plattformübergreifende Einkaufslisten-App, entwickelt mit **Kotlin Multiplatform (KMP)** und **Compose Multiplatform**. Die App bietet eine nahtlose Offline-First-Erfahrung mit Hintergrund-Synchronisation zu Firebase.
 
