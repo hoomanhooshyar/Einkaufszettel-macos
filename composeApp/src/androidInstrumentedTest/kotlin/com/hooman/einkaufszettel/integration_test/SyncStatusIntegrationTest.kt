@@ -93,7 +93,7 @@ class SyncStatusIntegrationTest: KoinTest {
                 )
             }
 
-            override suspend fun signOut() {
+            override suspend fun signOut(): Resource<Unit> {
                 TODO("Not yet implemented")
             }
 

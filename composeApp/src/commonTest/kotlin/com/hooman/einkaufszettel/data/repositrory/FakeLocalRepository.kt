@@ -231,7 +231,19 @@ class FakeLocalRepository: LocalRepository {
         billId: String,
         syncStatus: SyncStatus
     ): Resource<Unit> {
-        TODO("Not yet implemented")
+        val currentBills = bills.value
+        val exists = currentBills.any { it.id == billId }
+
+        return if(exists){
+            bills.update { list ->
+                list.map { bill ->
+                    if(bill.id == billId) bill.copy(syncStatus = syncStatus) else bill
+                }
+            }
+            Resource.Success(Unit)
+        }else{
+            Resource.Error("Bill not found")
+        }
     }
 
     override fun getProductUnSyncData(syncStatus: SyncStatus): Flow<Resource<List<Product>>> {

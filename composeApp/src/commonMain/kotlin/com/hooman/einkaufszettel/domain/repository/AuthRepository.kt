@@ -9,5 +9,5 @@ interface AuthRepository {
 
     suspend fun signInWithGoogle(idToken: String, accessToken: String?):Resource<User>
     suspend fun getCurrentUser(): User?
-    suspend fun signOut()
+    suspend fun signOut(): Resource<Unit>
 }

@@ -50,7 +50,8 @@ class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun signOut() {
+    override suspend fun signOut(): Resource<Unit> {
         auth.signOut()
+        return Resource.Success(Unit)
     }
 }

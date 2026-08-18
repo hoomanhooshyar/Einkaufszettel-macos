@@ -31,6 +31,7 @@
     <string name="search">Search</string>
     <string name="name">Name</string>
     <string name="logout">Log out</string>
+    <string name="unknown_user">Unknown User </string>
 
 
     <string name="total_amount">Total amount</string>

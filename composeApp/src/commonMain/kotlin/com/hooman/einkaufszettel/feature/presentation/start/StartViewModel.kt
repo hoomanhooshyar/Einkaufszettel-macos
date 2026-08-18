@@ -27,16 +27,7 @@ class StartViewModel(
     private fun checkStartupLogic(){
         viewModelScope.launch {
 
-            val login = authRepository.getCurrentUserId()
-
             val online = observer.isConnected.first()
-
-            if(login.isNullOrEmpty()){
-                _startState.value = _startState.value.copy(
-                    nexDestination = Routes.Login
-                )
-                return@launch
-            }
 
             if(online){
                 try {

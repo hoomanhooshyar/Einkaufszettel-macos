@@ -20,8 +20,7 @@ class LoginViewModel(
     private val _loginState = MutableStateFlow(LoginState())
     val loginState = _loginState.asStateFlow()
 
-    private val _events = Channel<LoginEvent>()
-    val events = _events.receiveAsFlow()
+
 
 
     fun onGoogleIdTokenReceived(googleToken: GoogleTokens) {
@@ -37,24 +36,37 @@ class LoginViewModel(
                             isLoading = false,
                             isLoggedIn = true,
                             )
-                    _events.send(LoginEvent.NavigateToHome)
                 }
 
                 is Resource.Error -> {
                     _loginState.value = _loginState.value.copy(
                         isLoading = false,
                         isLoggedIn = false,
+                        error = result.message
                     )
 
-                    _events.send(LoginEvent.ShowSnackBar(result.message!!))
+
                 }
 
                 is Resource.Loading -> {
                     _loginState.value = _loginState.value.copy(
-                        isLoading = true
+                        isLoading = true,
+                        error = null
                     )
                 }
             }
         }
+    }
+
+    fun clearMessage(){
+        _loginState.value = _loginState.value.copy(
+            error = null
+        )
+    }
+
+    fun resetLoginStatus(){
+        _loginState.value = _loginState.value.copy(
+            isLoading = false
+        )
     }
 }

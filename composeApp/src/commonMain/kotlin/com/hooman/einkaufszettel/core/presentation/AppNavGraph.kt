@@ -123,7 +123,8 @@ fun AppNavGraph(
                     SettingScreenRoot(
                         viewModel = vm,
                         contentPadding = contentPadding,
-                        navController = navController
+                        navController = navController,
+                        snackBarHostState = snackBarHostState
                     )
                 }
 

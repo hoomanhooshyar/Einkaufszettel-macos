@@ -2,13 +2,18 @@ package com.hooman.einkaufszettel.feature.presentation.main.components
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.hooman.einkaufszettel.core.presentation.darkOrangeColor
 import com.hooman.einkaufszettel.core.presentation.navigateSingleTopTo
 import com.hooman.einkaufszettel.feature.presentation.main.utils.BottomItem
 import com.hooman.einkaufszettel.feature.presentation.main.utils.selectedTabQualifiedName
@@ -21,13 +26,10 @@ fun BottomBar(
     items: List<BottomItem>
 ) {
     val entry by navController.currentBackStackEntryAsState()
-    val currentRoute = entry?.destination?.route
-    val selectedTabQN = selectedTabQualifiedName(currentRoute)
+    val currentDestination = entry?.destination
     NavigationBar {
         items.forEach { item ->
-            val itemQN = item::class.qualifiedName
-            val selected = selectedTabQN == itemQN
-
+            val selected = currentDestination?.route?.contains(item.route::class.simpleName ?: "") == true
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -39,7 +41,14 @@ fun BottomBar(
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
-                ) }
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = darkOrangeColor,
+                    selectedTextColor = darkOrangeColor,
+                    unselectedIconColor = Color.Gray,
+                    unselectedTextColor = Color.Gray
+                )
             )
         }
     }

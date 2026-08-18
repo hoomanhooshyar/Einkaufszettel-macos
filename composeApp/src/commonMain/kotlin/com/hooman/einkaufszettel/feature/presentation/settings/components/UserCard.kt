@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -40,6 +41,7 @@ import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.logout
 import einkaufszettel.composeapp.generated.resources.logout_24px
 import einkaufszettel.composeapp.generated.resources.name
+import einkaufszettel.composeapp.generated.resources.unknown_user
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -48,7 +50,10 @@ import org.jetbrains.compose.resources.vectorResource
 fun UserCard(
     modifier: Modifier = Modifier,
     user: User,
-    onLogOutClick: () -> Unit
+    onButtonClick: () -> Unit,
+    icon: Any?,
+    buttonText: String,
+    buttonBackground: Brush
 ) {
     Card(
         modifier = modifier
@@ -93,8 +98,9 @@ fun UserCard(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
+                    val username = user.name ?: stringResource(Res.string.unknown_user)
                     Text(
-                        text = stringResource(Res.string.name) + ": ${user.name}",
+                        text = stringResource(Res.string.name) + ": $username",
                         color = whiteColor,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
@@ -104,16 +110,16 @@ fun UserCard(
 
 
             CEButton(
-                icon = vectorResource(Res.drawable.logout_24px),
+                icon = icon,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(AppDimens.spacingMedium),
                 onClick = {
-                    onLogOutClick()
+                    onButtonClick()
                 },
-                text = stringResource(Res.string.logout),
+                text = buttonText,
                 contentColor = whiteColor,
-                containerColor = redGradient
+                containerColor = buttonBackground
             )
         }
 

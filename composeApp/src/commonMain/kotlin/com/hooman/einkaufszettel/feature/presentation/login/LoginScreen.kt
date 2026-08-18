@@ -64,21 +64,31 @@ fun LoginScreenRoot(
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
     val platformContext = LocalPlatformContext.current
 
+    val errorMessage = loginState.error
+
+    val isLoggedIn = loginState.isLoggedIn
+
     val coroutineScope = rememberCoroutineScope()
 
     val googleTokenFailMessage = UiText.StringResourceId(Res.string.google_login_fail).asString()
-    val googleSigninFailMessage = UiText.StringResourceId(Res.string.fail_in_login).asString()
 
-    LaunchedEffect(Unit){
-        viewModel.events.collect { event ->
-            when(event){
-                is LoginEvent.NavigateToHome ->{
-                    navController.navigate(Routes.Home)
-                }
-                is LoginEvent.ShowSnackBar -> {
-                    snackBarHostState.showSnackbar(event.message, duration = SnackbarDuration.Short)
-                }
+    LaunchedEffect(errorMessage){
+        if(!errorMessage.isNullOrEmpty()){
+            snackBarHostState.showSnackbar(
+                errorMessage, duration = SnackbarDuration.Short
+            )
+
+            viewModel.clearMessage()
+        }
+    }
+
+    LaunchedEffect(isLoggedIn){
+        if(isLoggedIn){
+            navController.navigate(Routes.Settings){
+                popUpTo(Routes.Login){inclusive = true}
             }
+
+            viewModel.resetLoginStatus()
         }
     }
 
@@ -94,13 +104,12 @@ fun LoginScreenRoot(
                     if (idToken != null){
                         viewModel.onGoogleIdTokenReceived(idToken)
                     }else{
-
                         snackBarHostState.showSnackbar(googleTokenFailMessage, duration = SnackbarDuration.Short)
                     }
 
                 }catch (e: Exception){
                     e.printStackTrace()
-                    snackBarHostState.showSnackbar(e.message!!, duration = SnackbarDuration.Short)
+                    snackBarHostState.showSnackbar(e.message ?: "Unknown Error", duration = SnackbarDuration.Short)
                 }
             }
         }
@@ -142,31 +151,7 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                LSText(
-                    text = stringResource(Res.string.email),
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
 
-                LSText(
-                    text = stringResource(Res.string.password),
-                    modifier = Modifier.padding(8.dp),
-                    isPassword = true
-                )
-
-                LSButton(
-                    text = stringResource(Res.string.login),
-                    textColor = whiteColor,
-                    backgroundColor = greenColor,
-                    modifier = Modifier.fillMaxWidth()
-                ){
-                    scope.launch {
-                        snackBarHostState.showSnackbar(
-                            message = "Login",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-
-                }
 
                 LSButton(
                     text = stringResource(Res.string.google_sign_in),
@@ -178,16 +163,6 @@ fun LoginScreen(
                         onGoogleSignInClick()
                     }
                 )
-
-                LSButton(
-                    text = stringResource(Res.string.apple_sign_in),
-                    textColor = whiteColor,
-                    backgroundColor = blackColor,
-                    logo = painterResource(Res.drawable.apple_40),
-                    modifier = Modifier.fillMaxWidth()
-                ){
-                    onAppleSignInClick()
-                }
             }
         }
     }

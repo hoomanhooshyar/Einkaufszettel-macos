@@ -69,6 +69,29 @@ class FakeAppDao : AppDao {
         }
     }
 
+    override fun getBillByName(name: String): Flow<List<BillWithItemsAndProducts>> {
+        return combine(billTable, itemTable, productTable){bills, items, products ->
+            val targetBills = bills.filter { it.name.contains(name, ignoreCase = true) }
+
+            targetBills.map { targetBill ->
+                val targetItems = items.filter { it.billId == targetBill.id }
+                val itemWithProducts = targetItems.map { shoppingItem ->
+                    val relatedProduct = products.find { it.id == shoppingItem.productId }
+                        ?: throw IllegalStateException("Product not found for this item")
+                    ShoppingItemWithProduct(
+                        item = shoppingItem,
+                        product = relatedProduct
+                    )
+                }
+
+                BillWithItemsAndProducts(
+                    bill = targetBill,
+                    items = itemWithProducts
+                )
+            }
+        }
+    }
+
     override suspend fun insertShoppingItem(item: ShoppingItemEntity) {
         itemTable.update { current ->
             val list = current.toMutableList()

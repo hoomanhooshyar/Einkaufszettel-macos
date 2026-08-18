@@ -6,4 +6,5 @@ import com.hooman.einkaufszettel.domain.model.User
 data class LoginState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
+    val error: String? = null
 )

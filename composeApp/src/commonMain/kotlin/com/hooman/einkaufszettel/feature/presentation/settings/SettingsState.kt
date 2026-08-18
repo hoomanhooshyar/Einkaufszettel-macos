@@ -5,5 +5,8 @@ import com.hooman.einkaufszettel.domain.model.User
 data class SettingsState(
     val user: User? = null,
     val email: String = "",
-    val currentLanguage: String = "en"
+    val currentLanguage: String = "en",
+    val isLoggedIn: Boolean = false,
+    val error: String? = null,
+    val isLoading: Boolean = false
 )

@@ -24,12 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.doublePreferencesKey
 import com.hooman.einkaufszettel.core.presentation.AppDimens
+import org.jetbrains.compose.resources.painterResource
 
 /**
  * CE = Customized Einkaufszettel
@@ -39,7 +41,7 @@ import com.hooman.einkaufszettel.core.presentation.AppDimens
 fun CEButton(
     modifier: Modifier,
     onClick: () -> Unit,
-    icon: ImageVector?,
+    icon: Any?,
     text: String,
     containerColor: Brush,
     contentColor: Color
@@ -59,11 +61,20 @@ fun CEButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = contentColor
-                )
+                if(icon is ImageVector){
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = contentColor
+                    )
+                }else if(icon is Painter){
+                    Icon(
+                        painter = icon,
+                        contentDescription = null,
+                        tint = contentColor
+                    )
+                }
+
                 Spacer(modifier = Modifier.width(8.dp))
             }
 

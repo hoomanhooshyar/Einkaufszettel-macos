@@ -30,6 +30,7 @@
     <string name="search">suchen</string>
     <string name="name">Name</string>
     <string name="logout">Abmelden</string>
+    <string name="unknown_user">unbekannter Benutzer</string>
 
     <string name="total_amount">Gesamtbetrag</string>
     <string name="total_purchase_by_percent">Gesamteinkauf in Prozent</string>

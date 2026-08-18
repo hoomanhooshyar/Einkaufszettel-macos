@@ -2,9 +2,11 @@ package com.hooman.einkaufszettel.feature.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.core.util.changeLanguage
 import com.hooman.einkaufszettel.domain.repository.AuthRepository
 import com.hooman.einkaufszettel.domain.repository.SettingsPreferences
+import com.hooman.einkaufszettel.feature.presentation.login.util.GoogleTokens
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +51,42 @@ class SettingsViewModel(
 
     }
 
+
+    fun onGoogleIdTokenReceived(googleToken: GoogleTokens) {
+        viewModelScope.launch {
+            _settingState.value = _settingState.value.copy(isLoading = true)
+
+            val result =
+                auth.signInWithGoogle(googleToken.idToken, googleToken.accessToken)
+
+            when (result) {
+                is Resource.Success -> {
+                    _settingState.value = _settingState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = true,
+                    )
+                }
+
+                is Resource.Error -> {
+                    _settingState.value = _settingState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = false,
+                        error = result.message
+                    )
+
+
+                }
+
+                is Resource.Loading -> {
+                    _settingState.value = _settingState.value.copy(
+                        isLoading = true,
+                        error = null
+                    )
+                }
+            }
+        }
+    }
+
     fun onLanguageSelected(languageCode: String){
         viewModelScope.launch {
             settingsPreferences.saveLanguage(languageCode)
@@ -58,7 +96,10 @@ class SettingsViewModel(
 
     fun userLogout(){
         viewModelScope.launch {
-            auth.signOut()
+            val result = auth.signOut()
+            if(result is Resource.Success){
+                _settingState.value = _settingState.value.copy(isLoggedIn = false)
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ val blackColor = Color(0xFF212121)
 val redColor = Color(0xFFFF0000)
 val greenColor = Color(0xFF00FF00)
 val orangeColor = Color(0xFFFFA500)
+val darkOrangeColor = Color(0xFFFF6600)
 val purpleColor = Color(0xFF800080)
 val blueColor = Color(0xFF0000FF)
 
