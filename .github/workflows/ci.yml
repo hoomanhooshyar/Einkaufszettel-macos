@@ -9,7 +9,6 @@ on:
   pull_request:
     branches: [ "master", "main" ]
 
-# گیت‌هاب برای ساخت ریلیز به دسترسی نوشتن نیاز دارد
 permissions:
   contents: write
 
@@ -35,14 +34,15 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      # 👈 تغییر مهم: ساخت نسخه Release به جای Debug
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
 
-      # مرحله CI: ذخیره فایل برای دانلود موقت
+      # 👈 تغییر اسم فایل دانلودی برای اینکه بدانید نسخه Release است
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Einkaufszettel-Debug-APK
+          name: Einkaufszettel-Release-APK
           path: '**/*.apk'
 
       # مرحله CD: ساخت ریلیز رسمی (فقط وقتی تگ ورژن بزنیم اجرا می‌شود)
