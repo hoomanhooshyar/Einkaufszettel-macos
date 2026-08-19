@@ -9,6 +9,7 @@ on:
   pull_request:
     branches: [ "master", "main" ]
 
+# گیت‌هاب برای ساخت ریلیز به دسترسی نوشتن نیاز دارد
 permissions:
   contents: write
 
@@ -34,20 +35,28 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
-      # 👈 تغییر مهم: ساخت نسخه Release به جای Debug
       - name: Build Release APK
         run: ./gradlew assembleRelease --stacktrace
 
-      # 👈 تغییر اسم فایل دانلودی برای اینکه بدانید نسخه Release است
-      - name: Upload APK as Artifact
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          # ⚠️ توجه: اگر اسم ماژول اصلی اندروید شما در پروژه composeApp نیست و مثلا app است، کلمه composeApp در خط زیر را به app تغییر دهید
+          releaseDirectory: composeApp/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload Signed APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Einkaufszettel-Release-APK
-          path: '**/*.apk'
+          name: Einkaufszettel-Release-Signed-APK
+          path: ${{steps.sign_app.outputs.signedReleaseFile}}
 
-      # مرحله CD: ساخت ریلیز رسمی (فقط وقتی تگ ورژن بزنیم اجرا می‌شود)
       - name: Publish Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: '**/*.apk'
+          files: ${{steps.sign_app.outputs.signedReleaseFile}}
