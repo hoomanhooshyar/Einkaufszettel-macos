@@ -1,6 +1,5 @@
 name: Android CI/CD
 
-# این اکشن روی شاخه اصلی و همچنین وقتی تگ ورژن (مثل v1.0.0) می‌زنیم اجرا می‌شود
 on:
   push:
     branches: [ "master", "main" ]
@@ -9,7 +8,6 @@ on:
   pull_request:
     branches: [ "master", "main" ]
 
-# گیت‌هاب برای ساخت ریلیز به دسترسی نوشتن نیاز دارد
 permissions:
   contents: write
 
@@ -35,29 +33,30 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace
+      # 👈 ۱. تبدیل متنِ طولانی گیت‌هاب به فایل واقعی Keystore
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          # ⚠️ توجه: اگر اسم ماژول اصلی اندروید شما در پروژه composeApp نیست و مثلا app است، کلمه composeApp در خط زیر را به app تغییر دهید
-          releaseDirectory: composeApp/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: '34.0.0'
+      # 👈 ۲. بیلد و امضای همزمان فایل با استفاده از خود گریدل (بدون باگ و بدون نیاز به پلاگین جانبی)
+      - name: Build & Sign Release APK
+        run: >
+          ./gradlew assembleRelease 
+          -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks 
+          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} 
+          -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} 
+          -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} 
+          --stacktrace
 
+      # 👈 ۳. آپلود فایل امضا شده نهایی
       - name: Upload Signed APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Einkaufszettel-Release-Signed-APK
-          path: ${{steps.sign_app.outputs.signedReleaseFile}}
+          name: Einkaufszettel-Release-APK
+          path: '**/*.apk'
 
       - name: Publish Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{steps.sign_app.outputs.signedReleaseFile}}
+          files: '**/*.apk'
