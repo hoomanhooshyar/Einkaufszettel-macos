@@ -12,13 +12,15 @@ Eine moderne, plattformübergreifende Einkaufslisten-App, entwickelt mit **Kotli
 
 <div align="center">
   <!-- Ersetze die Links durch deine tatsächlichen Screenshot-URLs -->
-  <img src="screenshots/bill.jpg" width="576"  alt=""/>
-  <img src="screenshots/add-item.jpg" width="576" alt=""/>
-  <img src="screenshots/item.jpg" width="576" alt=""/>
-  <img src="screenshots/pr-pic.jpg" width="576" alt=""/>
-  <img src="screenshots/product.jpg" width="576" alt=""/>
-  <img src="screenshots/report.jpg" width="576" alt=""/>
-  <img src="screenshots/setting.jpg" width="576" alt=""/>
+  <img src="screenshots/bill.jpg" width="32%"  alt=""/>
+  <img src="screenshots/add-item.jpg" width="32%" alt=""/>
+  <img src="screenshots/item.jpg" width="32%" alt=""/>
+   <br>
+  <img src="screenshots/pr-pic.jpg" width="32%" alt=""/>
+  <img src="screenshots/product.jpg" width="32%" alt=""/>
+  <img src="screenshots/report.jpg" width="32%" alt=""/>
+   <br>
+  <img src="screenshots/setting.jpg" width="32%" alt=""/>
 </div>
 
 ## ✨ Hauptfunktionen (Features)
