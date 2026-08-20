@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "981520711704",
+    "project_id": "einkaufszettel-247b4",
+    "storage_bucket": "einkaufszettel-247b4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:981520711704:android:969b2f3cd734b2580b836d",
+        "android_client_info": {
+          "package_name": "com.hooman.einkaufszettel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "981520711704-1eaccebq85etcuef29pelvg04li1ttnd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hooman.einkaufszettel",
+            "certificate_hash": "c9cbb54e5583d51da5698479310666471b91ceb3"
+          }
+        },
+        {
+          "client_id": "981520711704-s2jcovljcd8h4b3hgc9pd1ek71jfuftv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hooman.einkaufszettel",
+            "certificate_hash": "1cae0f0a44be416280b4552791fd965d0149141d"
+          }
+        },
+        {
+          "client_id": "981520711704-reh6adpfpv1m6ktjockmnptmsbrd65p2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHB9wdmCMONSeZaFAYqaery_lXVXGR_qU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "981520711704-reh6adpfpv1m6ktjockmnptmsbrd65p2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "981520711704-40csel8s49dg7a03ci17vht3mvh693hm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hooman.einkaufszettel"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
