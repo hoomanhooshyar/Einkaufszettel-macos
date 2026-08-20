@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.datetime.Instant
 
+
 @Entity(tableName = "bill")
 data class BillEntity(
     @PrimaryKey()

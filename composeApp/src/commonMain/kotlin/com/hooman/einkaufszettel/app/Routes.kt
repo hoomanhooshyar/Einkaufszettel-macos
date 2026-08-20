@@ -2,6 +2,7 @@ package com.hooman.einkaufszettel.app
 
 import kotlinx.serialization.Serializable
 
+
 interface Routes {
     @Serializable
     data object MainGraph: Routes
