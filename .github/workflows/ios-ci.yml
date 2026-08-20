@@ -25,10 +25,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 👈 بازسازی فایل فایربیس برای iOS (مسیر فایل را دقیقاً مطابق با پروژه خودتان تنظیم کنید)
       - name: Decode GoogleService-Info.plist
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_PLIST_BASE64 }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
+
+      # 👈👈👈 این مرحله تو کد شما جا افتاده بود! (این جلوی اون ارور رو میگیره)
+      - name: Generate Dummy Framework
+        run: ./gradlew :composeApp:generateDummyFramework
 
       - name: Install CocoaPods
         run: |
