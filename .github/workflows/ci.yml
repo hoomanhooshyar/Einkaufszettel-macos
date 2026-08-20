@@ -30,6 +30,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 👈 اضافه شده: بازسازی فایل فایربیس قبل از تست و بیلد
+      - name: Decode google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > composeApp/google-services.json
+
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
@@ -38,7 +43,7 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-      # 👈 ۲. بیلد و امضای همزمان فایل با استفاده از خود گریدل (بدون باگ و بدون نیاز به پلاگین جانبی)
+      # 👈 ۲. بیلد و امضای همزمان فایل با استفاده از خود گریدل
       - name: Build & Sign Release APK
         run: >
           ./gradlew assembleRelease 
