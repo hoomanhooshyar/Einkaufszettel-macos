@@ -30,7 +30,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 👈 اضافه شده: بازسازی فایل فایربیس قبل از تست و بیلد
       - name: Decode google-services.json
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > composeApp/google-services.json
@@ -38,30 +37,40 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
-      # 👈 ۱. تبدیل متنِ طولانی گیت‌هاب به فایل واقعی Keystore
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-      # 👈 ۲. بیلد و امضای همزمان فایل با استفاده از خود گریدل
-      - name: Build & Sign Release APK
+      # 👈 دستور از assembleRelease به bundleRelease تغییر کرد تا فایل AAB ساخته شود
+      - name: Build & Sign Release AAB
         run: >
-          ./gradlew assembleRelease 
+          ./gradlew bundleRelease 
           -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks 
           -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} 
           -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} 
           -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} 
           --stacktrace
 
-      # 👈 ۳. آپلود فایل امضا شده نهایی
-      - name: Upload Signed APK as Artifact
+      # 👈 آپلود در محیط خود گیت‌هاب (به پسوند aab تغییر کرد)
+      - name: Upload Signed AAB as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Einkaufszettel-Release-APK
-          path: '**/*.apk'
+          name: Einkaufszettel-Release-AAB
+          path: '**/*.aab'
 
-      - name: Publish Release
+      - name: Publish Release on GitHub
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: '**/*.apk'
+          files: '**/*.aab'
+
+      # 👈👈👈 بخش جدید: آپلود مستقیم به گوگل پلی (فقط زمانی که تگ v* زده شود)
+      - name: Upload to Google Play
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON }}
+          packageName: com.hooman.einkaufszettel
+          releaseFiles: composeApp/build/outputs/bundle/release/*.aab
+          track: internal # می‌توانید به alpha یا production تغییر دهید
+          status: completed
