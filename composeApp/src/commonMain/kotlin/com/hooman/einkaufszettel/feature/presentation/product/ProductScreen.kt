@@ -71,6 +71,10 @@ fun ProductScreenRoot(
         }
     }
 
+    LaunchedEffect(Unit){
+        viewModel.startSyncing()
+    }
+
     ProductScreen(
         contentPadding = contentPadding,
         products = viewModel.state.collectAsState().value.products,

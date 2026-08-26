@@ -1,7 +1,9 @@
 package com.hooman.einkaufszettel.domain.model
 
+import com.hooman.einkaufszettel.core.util.KeepForFirebase
 import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 
+@KeepForFirebase
 data class ShoppingDetails(
     val productId: String,
     val productImage: String,

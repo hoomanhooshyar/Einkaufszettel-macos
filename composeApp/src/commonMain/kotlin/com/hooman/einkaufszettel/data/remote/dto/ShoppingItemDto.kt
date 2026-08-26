@@ -1,10 +1,12 @@
 package com.hooman.einkaufszettel.data.remote.dto
 
+import com.hooman.einkaufszettel.core.util.KeepForFirebase
 import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.ShoppingItem
 import kotlinx.serialization.Serializable
 
 @Serializable
+@KeepForFirebase
 data class ShoppingItemDto(
     val billId: String = "",
     val productId: String = "",
@@ -15,7 +17,7 @@ data class ShoppingItemDto(
     val productImage: String? = null,
     val userId: String = "",
     val isChecked: Boolean = false,
-    val syncStatus: SyncStatus
+    val syncStatus: SyncStatus = SyncStatus.SUCCESS
 ){
     fun toDomain(id: String): ShoppingItem = ShoppingItem(
         id = id,

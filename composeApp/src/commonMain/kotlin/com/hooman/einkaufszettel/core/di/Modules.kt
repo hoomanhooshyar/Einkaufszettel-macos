@@ -111,6 +111,8 @@ val sharedModule = module {
     single {
         get<DatabaseFactory>().create()
             .setDriver(BundledSQLiteDriver())
+            .addMigrations()
+            .fallbackToDestructiveMigration(true)
             .build()
     }
 

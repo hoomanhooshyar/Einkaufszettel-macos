@@ -1,24 +1,55 @@
-# 1. محافظت از مدل‌های اطلاعاتی و دیتابیس (بسیار مهم برای Room و Firebase)
--keep class com.hooman.einkaufszettel.domain.model.** { *; }
--keep class com.hooman.einkaufszettel.data.local.entity.** { *; }
+ # --- محافظت از کل ساختار و پکیج‌های پروژه خودتان ---
+-keep class com.hooman.einkaufszettel.** { *; }
+-keep class com.hooman.einkaufszettel.domain.** { *; }
+-keep class com.hooman.einkaufszettel.data.** { *; }
+-keep class com.hooman.einkaufszettel.feature.** { *; }
 
-# 2. محافظت از کدهای پس‌زمینه (Coroutines)
--keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
--keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
--keepclassmembernames class kotlinx.** {
-    volatile <fields>;
+# --- Jetpack Compose & UI ---
+-keep class androidx.compose.** { *; }
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
+
+# --- Room Database ---
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao class * { *; }
+-keepclassmembers class * {
+    @androidx.room.* <fields>;
+    @androidx.room.* <methods>;
 }
 
-# 3. محافظت از کلاس‌های اصلی فایربیس و احراز هویت (محدودتر برای رفع اخطار)
--keep class com.google.firebase.auth.** { *; }
--keep class com.google.firebase.FirebaseApp { *; }
--keep class com.google.firebase.FirebaseOptions { *; }
+# --- محافظت صددرصدی از تمام انوتیشن‌ها و کلاس‌های Room ---
+-keepattributes *Annotation*, InnerClasses, Signature, EnclosingMethod
 
-# 4. محافظت از کلاس‌های اصلی ورود با گوگل
--keep class com.google.android.gms.auth.api.signin.** { *; }
--keep class com.google.android.gms.auth.api.identity.** { *; }
--keep class com.google.android.gms.common.api.** { *; }
+-keepclassmembers class * {
+    @androidx.room.Query <methods>;
+    @androidx.room.Insert <methods>;
+    @androidx.room.Update <methods>;
+    @androidx.room.Delete <methods>;
+    @androidx.room.Transaction <methods>;
+}
 
-# (اختیاری) محافظت از کلاس‌های معماری خودتان در صورت نیاز
--keep class com.hooman.einkaufszettel.feature.presentation.** { *; }
--keep class com.hooman.einkaufszettel.core.presentation.** { *; }
+-keepclassmembers class * extends androidx.room.RoomDatabase {
+    public *;
+}
+
+# --- Koin (Dependency Injection) ---
+-keep class org.koin.** { *; }
+-keepnames class * {
+    @org.koin.core.annotation.* <fields>;
+}
+
+# --- Firebase & Google Play Services ---
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+-keep @**.KeepForFirebase class * { *; }
+-keepclassmembers @**.KeepForFirebase class * { *; }
+
+-keep class * extends java.lang.Enum {
+    <fields>;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+-keepclassmembers enum * { *; }

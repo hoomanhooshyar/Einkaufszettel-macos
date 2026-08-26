@@ -67,25 +67,21 @@ fun SettingScreenRoot(
 ) {
 
     val state by viewModel.settingState.collectAsState()
-    val user = state.user
-    var isLoggedIn = state.isLoggedIn
+
+
     val scope = rememberCoroutineScope()
     val platformContext = LocalPlatformContext.current
     val googleTokenFailMessage = UiText.StringResourceId(Res.string.google_login_fail).asString()
 
-    LaunchedEffect(user){
-        if(user != null){
-            isLoggedIn = true
-        }
-    }
+
     SettingScreen(
         contentPadding = contentPadding,
         onButtonClick = { languageCode ->
             viewModel.onLanguageSelected(languageCode)
         },
         languageCode = state.currentLanguage,
-        isLoggedIn = isLoggedIn,
-        user = user,
+        isLoggedIn = state.isLoggedIn,
+        user = state.user,
         onLogoutClick = {
             viewModel.userLogout()
         },

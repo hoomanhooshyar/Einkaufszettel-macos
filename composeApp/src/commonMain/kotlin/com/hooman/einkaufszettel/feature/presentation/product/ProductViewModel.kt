@@ -7,13 +7,10 @@ import com.hooman.einkaufszettel.core.presentation.UiText
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.domain.model.Product
 import com.hooman.einkaufszettel.domain.repository.AuthRepository
-import com.hooman.einkaufszettel.domain.source.FirebaseService
 import com.hooman.einkaufszettel.domain.usecase.DeleteProductFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.DeleteProductFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllProductsByUserIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetAllProductsFromLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.GetProductByIdFromLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.GetProductByIdFromRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertProductToLocalUseCase
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.delete_product_fail
@@ -23,13 +20,11 @@ import einkaufszettel.composeapp.generated.resources.no_products
 import einkaufszettel.composeapp.generated.resources.not_logged_in
 import einkaufszettel.composeapp.generated.resources.product_delete_from_local
 import einkaufszettel.composeapp.generated.resources.product_delete_from_remote
-import einkaufszettel.composeapp.generated.resources.unknown_error
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 class ProductViewModel(
@@ -53,36 +48,27 @@ class ProductViewModel(
     private val _deleteState = MutableStateFlow<UiText?>(null)
     val deleteState: StateFlow<UiText?> = _deleteState.asStateFlow()
 
-    private var isInitialLoad = true
+    var localJob: Job? = null
+    var syncJob: Job? = null
+
 
 
     init {
-        _userId.value = auth.getCurrentUserId()
-        observeProduct()
+
+        observeLocalProduct()
     }
 
-    fun observeProduct(){
-        viewModelScope.launch {
+    fun observeLocalProduct(){
+        localJob?.cancel()
+        localJob = viewModelScope.launch {
             getProductsL().collect { res ->
                 when(res){
                     is Resource.Success ->{
-                        val products = res.data ?: emptyList()
-                        if(products.isEmpty() && isInitialLoad){
-                            isInitialLoad = false
-                            _state.value = _state.value.copy(isLoading = true)
-                            val currentUser = _userId.value
-                            if(!currentUser.isNullOrEmpty()){
-                                getAllProductsFromRemote(currentUser)
-
-                            }
-                        }else{
-                            isInitialLoad = false
-                            _state.value = _state.value.copy(
-                                isLoading = false,
-                                error = null,
-                                products = products
-                            )
-                        }
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            products = res.data ?: emptyList()
+                        )
                     }
                     is Resource.Error ->{
                         _state.value = _state.value.copy(
@@ -96,6 +82,24 @@ class ProductViewModel(
                             error = null
                         )
                     }
+                }
+            }
+        }
+    }
+
+    fun startSyncing(){
+        val currentUser = auth.getCurrentUserId()
+        if(currentUser.isNullOrEmpty()) return
+
+        if(syncJob?.isActive == true && _userId.value == currentUser) return
+
+        _userId.value = currentUser
+        syncJob?.cancel()
+
+        syncJob = viewModelScope.launch {
+            getProductsR(currentUser).collect { res ->
+                if(res is Resource.Success){
+                    insertProductIntoLocal(res.data)
                 }
             }
         }

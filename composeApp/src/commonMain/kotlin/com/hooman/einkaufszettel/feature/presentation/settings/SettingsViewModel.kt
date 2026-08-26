@@ -44,7 +44,8 @@ class SettingsViewModel(
         getInfoJob = viewModelScope.launch {
             if(auth.getCurrentUser() != null){
                 _settingState.value = _settingState.value.copy(
-                    user = auth.getCurrentUser()
+                    user = auth.getCurrentUser(),
+                    isLoggedIn = true
                 )
             }
         }
@@ -64,6 +65,7 @@ class SettingsViewModel(
                     _settingState.value = _settingState.value.copy(
                         isLoading = false,
                         isLoggedIn = true,
+                        user = result.data
                     )
                 }
 
@@ -98,7 +100,10 @@ class SettingsViewModel(
         viewModelScope.launch {
             val result = auth.signOut()
             if(result is Resource.Success){
-                _settingState.value = _settingState.value.copy(isLoggedIn = false)
+                _settingState.value = _settingState.value.copy(
+                    isLoggedIn = false,
+                    user = null
+                )
             }
         }
     }

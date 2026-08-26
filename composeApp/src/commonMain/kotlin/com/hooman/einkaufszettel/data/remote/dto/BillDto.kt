@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.data.remote.dto
 
+import com.hooman.einkaufszettel.core.util.KeepForFirebase
 import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.PurchaseType
@@ -8,12 +9,13 @@ import kotlinx.serialization.Serializable
 import org.koin.core.qualifier.named
 
 @Serializable
+@KeepForFirebase
 data class BillDto(
     val billDateMillis: Long = 0L,
     val name: String = "",
     val userId: String = "",
-    val type: String,
-    val syncStatus: SyncStatus
+    val type: String = PurchaseType.OTHER.name,
+    val syncStatus: SyncStatus = SyncStatus.SUCCESS
 ){
     fun toDomain(id: String): Bill = Bill(
         id = id,

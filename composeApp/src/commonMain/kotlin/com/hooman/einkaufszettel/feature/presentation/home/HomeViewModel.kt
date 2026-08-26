@@ -46,7 +46,9 @@ class HomeViewModel(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
-    private var isInitialLoad = true
+    private var localJob : Job? = null
+    private var syncJob: Job? = null
+
 
     private val _userId = MutableStateFlow(auth.getCurrentUserId())
     val userId = _userId.asStateFlow()
@@ -54,32 +56,24 @@ class HomeViewModel(
     private var searchJob : Job? = null
 
     init {
-        observeBills()
+        observeLocalBills()
+
     }
 
-    private fun observeBills(){
-        viewModelScope.launch {
+    private fun observeLocalBills(){
+        localJob?.cancel()
+        localJob = viewModelScope.launch {
             getBillL().collect { res ->
                 when(res){
                     is Resource.Success ->{
                         val bills = res.data ?: emptyList()
-                        if(bills.isEmpty() && isInitialLoad){
-                            isInitialLoad = false
-                            _state.value = _state.value.copy(isLoading = true)
-                            val currentUser = _userId.value
-                            if(!currentUser.isNullOrEmpty()){
-                                getBillFromRemote()
-                            }
-                        }else{
-                            isInitialLoad = false
-                            val newTotalAmount = calculateTotalAmount(bills)
-                            _state.value = _state.value.copy(
-                                isLoading = false,
-                                error = null,
-                                bills = bills,
-                                totalAmount = newTotalAmount
-                            )
-                        }
+                        val newTotalAmount = calculateTotalAmount(bills)
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            bills = bills,
+                            totalAmount = newTotalAmount
+                        )
                     }
                     is Resource.Loading ->{
                         _state.value = _state.value.copy(
@@ -93,6 +87,50 @@ class HomeViewModel(
                             error = UiText.DynamicString(res.message!!)
                         )
                     }
+                }
+            }
+        }
+    }
+
+    fun startSyncing(){
+        val currentUserId = auth.getCurrentUserId()
+        if(currentUserId.isNullOrEmpty()) return
+
+        if(syncJob?.isActive == true && _userId.value == currentUserId) return
+
+        _userId.value = currentUserId
+        syncJob?.cancel()
+
+        syncJob = viewModelScope.launch {
+            getBillR(currentUserId).collect { res ->
+                if(res is Resource.Success){
+                    insertBillIntoLocal(res.data)
+                }
+            }
+        }
+    }
+
+    private fun syncBillFromRemote(){
+        viewModelScope.launch {
+            val userId = auth.getCurrentUserId()
+            if(userId.isNullOrEmpty()){
+                return@launch
+            }
+
+
+            getBillR(userId).collect { res ->
+                when(res){
+                    is Resource.Success ->{
+                        insertBillIntoLocal(res.data)
+                    }
+                    is Resource.Error ->{
+                        print("Firebase Sync Error: ${res.message}")
+                        _state.value = _state.value.copy(
+                            error = UiText.DynamicString(res.message ?: "Unknown Error")
+                        )
+                    }
+
+                    is Resource.Loading ->{}
                 }
             }
         }
@@ -200,7 +238,7 @@ class HomeViewModel(
         searchJob?.cancel()
 
         if(name.isEmpty() || name == ""){
-            observeBills()
+            observeLocalBills()
             return
         }
 

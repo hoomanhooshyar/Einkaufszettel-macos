@@ -8,7 +8,11 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.hooman.einkaufszettel.core.util.KeepForFirebase
+import kotlinx.serialization.Serializable
 
+@Serializable
+@KeepForFirebase
 enum class PurchaseType(val icon: ImageVector) {
     SUPERMARKET(Icons.Filled.ShoppingCart),
     PARTY(Icons.Filled.Celebration),

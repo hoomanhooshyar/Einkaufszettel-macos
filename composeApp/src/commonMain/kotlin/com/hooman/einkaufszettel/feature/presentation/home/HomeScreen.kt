@@ -69,6 +69,11 @@ fun HomeScreenRoot(
     val state by viewModel.state.collectAsState()
 
 
+
+    LaunchedEffect(Unit){
+        viewModel.startSyncing()
+    }
+
     if(state.error != null){
         val error: String = state.error!!.asString()
         LaunchedEffect(error){

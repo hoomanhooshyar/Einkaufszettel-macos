@@ -37,6 +37,8 @@ actual val platformModule: Module
             factory.create()
                 .setDriver(BundledSQLiteDriver())
                 .setQueryCoroutineContext(Dispatchers.IO)
+                .addMigrations()
+                .fallbackToDestructiveMigration(true)
                 .build()
         }
 

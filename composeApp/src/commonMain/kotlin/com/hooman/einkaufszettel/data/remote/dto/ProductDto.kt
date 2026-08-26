@@ -1,16 +1,18 @@
 package com.hooman.einkaufszettel.data.remote.dto
 
+import com.hooman.einkaufszettel.core.util.KeepForFirebase
 import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import com.hooman.einkaufszettel.domain.model.Product
 import kotlinx.serialization.Serializable
 
 @Serializable
+@KeepForFirebase
 data class ProductDto(
     val name: String = "",
     val image: String? = null,
     val price: Double = 0.0,
     val userId: String = "",
-    val syncStatus: SyncStatus
+    val syncStatus: SyncStatus = SyncStatus.SUCCESS
 ){
     fun toDomain(id: String): Product = Product(
         id = id,
