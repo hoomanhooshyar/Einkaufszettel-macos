@@ -190,8 +190,8 @@ android {
         applicationId = "com.hooman.einkaufszettel"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.4"
+        versionCode = 5
+        versionName = "1.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
