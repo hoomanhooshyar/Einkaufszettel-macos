@@ -53,3 +53,8 @@
     public static ** valueOf(java.lang.String);
 }
 -keepclassmembers enum * { *; }
+
+# --- Google Credential Manager & Play Services Auth ---
+-keep class androidx.credentials.** { *; }
+-keep class com.google.android.libraries.identity.googleid.** { *; }
+-keepattributes Signature, InnerClasses, EnclosingMethod
