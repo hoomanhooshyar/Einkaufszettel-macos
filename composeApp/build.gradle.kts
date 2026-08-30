@@ -190,8 +190,8 @@ android {
         applicationId = "com.hooman.einkaufszettel"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.12"
+        versionCode = 13
+        versionName = "1.13"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
@@ -201,8 +201,8 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
 
 
             proguardFiles(
