@@ -186,10 +186,10 @@ android {
 
     defaultConfig {
         applicationId = "com.hooman.einkaufszettel"
-        minSdk = libs.versions.android.minSdk.get().toInt()
+        minSdk = 24
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.15"
+        versionCode = 16
+        versionName = "1.16"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
