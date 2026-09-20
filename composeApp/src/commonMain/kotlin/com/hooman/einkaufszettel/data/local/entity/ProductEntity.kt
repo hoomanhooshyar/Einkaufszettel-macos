@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -10,5 +11,7 @@ data class ProductEntity(
     val name: String,
     val image: String?,
     val price: Double,
+    @ColumnInfo(defaultValue = "''")
+    val userId: String = "",
     val syncStatus: SyncStatus
 )

@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 
 interface Routes {
     @Serializable
+    data object MainContainer: Routes
+
+    @Serializable
     data object MainGraph: Routes
 
     @Serializable

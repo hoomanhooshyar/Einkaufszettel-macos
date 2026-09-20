@@ -279,4 +279,13 @@ class FakeLocalRepository: LocalRepository {
     override suspend fun insertProductList(products: List<Product>): Resource<Unit> {
         TODO("Not yet implemented")
     }
+
+    override suspend fun acknowledgeBill(uploaded: Bill, status: SyncStatus): Boolean =
+        error("Use LocalRepositoryImpl with FakeAppDao for synchronization tests")
+
+    override suspend fun acknowledgeProduct(uploaded: Product, status: SyncStatus): Boolean =
+        error("Use LocalRepositoryImpl with FakeAppDao for synchronization tests")
+
+    override suspend fun acknowledgeShoppingItem(uploaded: ShoppingItem, status: SyncStatus): Boolean =
+        error("Use LocalRepositoryImpl with FakeAppDao for synchronization tests")
 }

@@ -9,8 +9,8 @@ fun BillWithItemsAndProducts.toDomain(): Bill{
     return Bill(
         id = bill.id,
         billDate = bill.billDate,
-        userId = "",
-        items = items.map { shoppingItemWithProduct ->
+        userId = bill.userId,
+        items = items.filter { it.item.userId == bill.userId && it.product.userId == bill.userId }.map { shoppingItemWithProduct ->
             ShoppingItem(
                 id = shoppingItemWithProduct.item.id,
                 productId = shoppingItemWithProduct.product.id,
@@ -21,7 +21,7 @@ fun BillWithItemsAndProducts.toDomain(): Bill{
                 discount = shoppingItemWithProduct.item.discount,
                 billId = bill.id,
                 isChecked = shoppingItemWithProduct.item.isChecked,
-                userId = "",
+                userId = shoppingItemWithProduct.item.userId,
                 syncStatus = shoppingItemWithProduct.item.syncStatus
             )
         },

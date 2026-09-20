@@ -21,7 +21,7 @@
     <string name="bill_remove_remote_fail">Bill has been not deleted from Server</string>
     <string name="bill_remove_remote_success">Bill has been removed from Server</string>
     <string name="shopping_item_is_disabled">You can't update this item</string>
-    <string name="discount_error">Discount must be bigger than 0</string>
+    <string name="discount_error">Discount must be greater than 0 and less than 100</string>
     <string name="no_data">No Data</string>
     <string name="discount">Discount</string>
     <string name="total">Total</string>
@@ -110,4 +110,14 @@
     <string name="friends">Friends</string>
     <string name="cloth">Cloth</string>
     <string name="other">Other</string>
+    <string name="report_week">Week</string>
+    <string name="report_month">Month</string>
+    <string name="report_year">Year</string>
+    <string name="report_custom">Custom</string>
+    <string name="report_start_date">Start date</string>
+    <string name="report_end_date">End date</string>
+    <string name="report_select_dates">Select dates</string>
+    <string name="report_date_range">Select date range</string>
+    <string name="report_retry">Retry</string>
+    <string name="report_bar_chart">Spending over time</string>
 </resources>

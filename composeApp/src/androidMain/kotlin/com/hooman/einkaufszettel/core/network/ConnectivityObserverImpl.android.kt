@@ -20,11 +20,6 @@ actual class ConnectivityObserverImpl(
 
     actual override val isConnected: Flow<Boolean> get() = callbackFlow {
         val callback = object : NetworkCallback(){
-            override fun onAvailable(network: Network) {
-                super.onAvailable(network)
-                trySend(true)
-            }
-
             override fun onLost(network: Network) {
                 super.onLost(network)
                 trySend(false)
@@ -40,6 +35,10 @@ actual class ConnectivityObserverImpl(
             }
         }
         connectivityManager.registerDefaultNetworkCallback(callback)
+        trySend(
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+        )
 
         awaitClose {
             connectivityManager.unregisterNetworkCallback(callback)

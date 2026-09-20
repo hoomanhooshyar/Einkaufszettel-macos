@@ -19,7 +19,15 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.datetime.LocalDate
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +55,14 @@ import com.hooman.einkaufszettel.feature.presentation.report.components.DonutCha
 import com.hooman.einkaufszettel.feature.presentation.report.components.ReportCard
 import com.hooman.einkaufszettel.feature.utils.DateTime
 import einkaufszettel.composeapp.generated.resources.Res
+import einkaufszettel.composeapp.generated.resources.report_week
+import einkaufszettel.composeapp.generated.resources.report_month
+import einkaufszettel.composeapp.generated.resources.report_year
+import einkaufszettel.composeapp.generated.resources.report_custom
+import einkaufszettel.composeapp.generated.resources.report_start_date
+import einkaufszettel.composeapp.generated.resources.report_end_date
+import einkaufszettel.composeapp.generated.resources.report_retry
+import einkaufszettel.composeapp.generated.resources.report_bar_chart
 import einkaufszettel.composeapp.generated.resources.average_per_purchase
 import einkaufszettel.composeapp.generated.resources.count_of_items
 import einkaufszettel.composeapp.generated.resources.discount
@@ -66,241 +82,135 @@ fun ReportsScreenRoot(
     viewModel: ReportsViewModel = koinViewModel(),
     contentPadding: PaddingValues
 ) {
-    val reportState by viewModel.reportState.collectAsState()
+    val state by viewModel.reportState.collectAsStateWithLifecycle()
     ReportsScreen(
         contentPadding = contentPadding,
-        onDateSelectorClick = { timeFilter, startDate, endDate ->
-
-            viewModel.getBillsByDate(
-                timeFilter = timeFilter,
-                customStartDate = startDate,
-                customEndDate = endDate
-            )
+        state = state,
+        onFilterSelected = { viewModel.getBillsByDate(it) },
+        onCustomRangeSelected = { start, end ->
+            viewModel.getBillsByDate(TimeFilter.CUSTOM, start, end)
         },
-        barChartData = reportState.barChartReport,
-        categories = reportState.categoryReports,
-        totalAmount = reportState.totalAmount,
-        itemCount = reportState.purchaseCount,
-        averagePerPurchase = reportState.averagePerPurchase,
-        discount = reportState.totalDiscount
+        onRetry = viewModel::retry
     )
 }
 
 @Composable
 fun ReportsScreen(
     contentPadding: PaddingValues,
-    onDateSelectorClick: (TimeFilter, Instant, Instant) -> Unit,
-    barChartData: List<BarChartReport>,
-    categories: List<CategoryReport>,
-    totalAmount: Double = 0.0,
-    itemCount: Int = 0,
-    averagePerPurchase: Double = 0.0,
-    discount: Double = 0.0
+    state: ReportState,
+    onFilterSelected: (TimeFilter) -> Unit,
+    onCustomRangeSelected: (LocalDate, LocalDate) -> Unit,
+    onRetry: () -> Unit
 ) {
-
-    val filterItems = listOf("Woche", "Monat", "Jahr", "Custom")
-    var selectedIndex by remember { mutableStateOf(1) }
-    val date = DateTime.getFormattedDate(Clock.System.now().toString())
-    var showDateTextField by remember { mutableStateOf(false) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    val endDate = Clock.System.now()
-    var savedIndex by remember { mutableStateOf(1) }
-    var selectedEndDate by remember { mutableStateOf(Clock.System.now()) }
-    var selectedStartDate by remember { mutableStateOf(Clock.System.now()) }
-    val scrollState = rememberScrollState()
-    LaunchedEffect(Unit) {
-
-        onDateSelectorClick(TimeFilter.MONTH, endDate.minus(30.days), endDate)
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundGradient)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .background(Color.Transparent)
-                .verticalScroll(scrollState),
-
-            ) {
-
-            CustomFilterTab(
-                tabs = filterItems,
-                selectedTabIndex = selectedIndex,
-                onTabClick = { index ->
-                    if (index != 3) {
-                        savedIndex = index
-                    }
-                    selectedIndex = index
-                    when (index) {
-                        0 -> {
-                            showDateTextField = false
-                            onDateSelectorClick(
-                                TimeFilter.WEEK,
-                                selectedEndDate.minus(7.days),
-                                selectedEndDate
-                            )
-                        }
-
-                        1 -> {
-                            showDateTextField = false
-                            onDateSelectorClick(
-                                TimeFilter.MONTH,
-                                selectedEndDate.minus(30.days),
-                                selectedEndDate
-                            )
-                        }
-
-                        2 -> {
-                            showDateTextField = false
-                            onDateSelectorClick(
-                                TimeFilter.YEAR,
-                                selectedEndDate.minus(365.days),
-                                selectedEndDate
-                            )
-                        }
-
-                        3 -> {
-                            showDateTextField = true
-                            selectedEndDate = Clock.System.now()
-                            selectedStartDate = when (savedIndex) {
-                                0 -> endDate.minus(7.days)
-                                1 -> endDate.minus(30.days)
-                                2 -> endDate.minus(365.days)
-                                else -> endDate.minus(30.days)
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-            )
-
-
-
-            Text(
-                modifier = Modifier.padding(start = AppDimens.spacingSmall),
-                text = date,
-                color = whiteColor,
-                fontSize = 16.sp
-            )
-            if (showDateTextField) {
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        val startLocalDate =
-                            selectedStartDate.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val formattedStartDate = "${
-                            startLocalDate.dayOfMonth.toString().padStart(2, '0')
-                        }.${
-                            startLocalDate.monthNumber.toString().padStart(2, '0')
-                        }.${startLocalDate.year}"
-
-
-                        CETextField(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            value = formattedStartDate,
-                            onValueChange = {},
-                            label = {
-                                Text(text = "Start Date")
-                            },
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.DateRange,
-                                    contentDescription = null
-                                )
-                            },
-                            keyboardType = KeyboardType.Text,
-                            placeholder = {
-                                Text(text = "Start Date")
-                            }
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .background(Color.Transparent)
-                                .clickable(onClick = {
-                                    showDatePicker = true
-                                })
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        val endLocalDate =
-                            selectedEndDate.toLocalDateTime((TimeZone.currentSystemDefault()))
-                        val formattedEndDate = "${
-                            endLocalDate.dayOfMonth.toString().padStart(2, '0')
-                        }.${
-                            endLocalDate.monthNumber.toString().padStart(2, '0')
-                        }.${endLocalDate.year}"
-                        CETextField(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            value = formattedEndDate,
-                            onValueChange = {},
-                            label = {
-                                Text(text = "End Date")
-                            },
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.DateRange,
-                                    contentDescription = null
-                                )
-                            },
-                            keyboardType = KeyboardType.Text,
-                            placeholder = {
-                                Text(text = "End Date")
-                            }
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .background(Color.Transparent)
-                                .clickable(onClick = {
-                                    showDatePicker = true
-                                })
-                        )
-                    }
-
-
-                }
-
-                if (showDatePicker) {
-                    CustomDatePicker(
-                        onDismiss = {
-                            showDatePicker = false
-                        },
-                        onDateSelected = { startDate, endDate ->
-                            selectedStartDate = startDate
-                            selectedEndDate = endDate
-                            showDatePicker = false
-                            onDateSelectorClick(
-                                TimeFilter.CUSTOM,
-                                startDate,
-                                endDate
-                            )
-
-                        }
-                    )
-                }
-
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    if (showDatePicker) {
+        CustomDatePicker(
+            initialStartDate = state.customStartDate ?: state.startDate,
+            initialEndDate = state.customEndDate ?: state.endDate,
+            onDismiss = { showDatePicker = false },
+            onDateSelected = { start, end ->
+                showDatePicker = false
+                onCustomRangeSelected(start, end)
             }
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
+        )
+    }
+    Column(
+        modifier = Modifier.fillMaxSize().background(backgroundGradient)
+            .padding(contentPadding).verticalScroll(rememberScrollState())
+    ) {
+        CustomFilterTab(
+            tabs = listOf(
+                stringResource(Res.string.report_week),
+                stringResource(Res.string.report_month),
+                stringResource(Res.string.report_year),
+                stringResource(Res.string.report_custom)
+            ),
+            selectedTabIndex = TimeFilter.entries.indexOf(state.selectedTimeFilter),
+            onTabClick = { index ->
+                val filter = TimeFilter.entries[index]
+                if (filter == TimeFilter.CUSTOM) showDatePicker = true
+                else onFilterSelected(filter)
+            },
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        Text(
+            text = state.dateRangeText,
+            color = whiteColor,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(horizontal = AppDimens.spacingSmall)
+        )
+        if (state.selectedTimeFilter == TimeFilter.CUSTOM) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                ReportDateField(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(Res.string.report_start_date),
+                    value = state.startDate?.toReportDateText().orEmpty(),
+                    onClick = { showDatePicker = true }
+                )
+                ReportDateField(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(Res.string.report_end_date),
+                    value = state.endDate?.toReportDateText().orEmpty(),
+                    onClick = { showDatePicker = true }
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        val error = state.error
+        when {
+            state.isLoading -> Box(
+                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = whiteColor)
+            }
+            error != null -> {
+                Text(
+                    text = error.asString(),
+                    color = whiteColor,
+                    modifier = Modifier.padding(AppDimens.spacingSmall)
+                )
+                TextButton(onClick = onRetry) { Text(stringResource(Res.string.report_retry), color = whiteColor) }
+            }
+            else -> ReportContent(state)
+        }
+    }
+}
+
+@Composable
+private fun ReportDateField(
+    label: String,
+    value: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = whiteColor,
+                unfocusedTextColor = whiteColor,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedBorderColor = whiteColor,
+                unfocusedBorderColor = whiteColor
+            ),
+            value = value,
+            onValueChange = {},
+            label = { Text(label, color = whiteColor) },
+            placeholder = { Text(label, color = whiteColor) },
+            readOnly = true,
+            trailingIcon = {
+                Icon(Icons.Default.DateRange, contentDescription = label, tint = whiteColor)
+            }
+        )
+        Box(Modifier.matchParentSize().clickable(onClick = onClick))
+    }
+}
+
+@Composable
+private fun ReportContent(state: ReportState) {
+    Column {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -311,7 +221,7 @@ fun ReportsScreen(
                     backgroundColor = greenGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.total_amount),
-                    value = "${totalAmount.toTwoDecimals()} €"
+                    value = "${state.totalAmount.toTwoDecimals()} €"
                 )
                 ReportCard(
                     modifier = Modifier
@@ -320,7 +230,7 @@ fun ReportsScreen(
                     backgroundColor = orangeGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.count_of_items),
-                    value = "$itemCount"
+                    value = "${state.purchaseCount}"
                 )
             }
             Spacer(
@@ -336,7 +246,7 @@ fun ReportsScreen(
                     backgroundColor = purpleGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.average_per_purchase),
-                    value = "${averagePerPurchase.toTwoDecimals()} €"
+                    value = "${state.averagePerPurchase.toTwoDecimals()} €"
                 )
                 ReportCard(
                     modifier = Modifier
@@ -345,29 +255,28 @@ fun ReportsScreen(
                     backgroundColor = redGradient,
                     textColor = whiteColor,
                     title = stringResource(Res.string.discount),
-                    value = "${discount.toTwoDecimals()} €"
+                    value = "${state.totalDiscount.toTwoDecimals()} €"
                 )
             }
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
-            DonutChartCard(
+            if (state.categoryReports.isNotEmpty()) DonutChartCard(
                 modifier = Modifier
                     .fillMaxWidth(),
                 backgroundColor = naturalGrayGradient,
-                data = categories,
+                data = state.categoryReports,
                 titleChart = stringResource(Res.string.total_purchase_by_percent)
             )
             BarChartCard(
                 modifier = Modifier
                     .fillMaxWidth(),
                 backgroundColor = naturalGrayGradient,
-                data = barChartData,
-                titleChart = "Bar Chart"
+                data = state.barChartReport,
+                titleChart = stringResource(Res.string.report_bar_chart)
             )
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
-        }
     }
 }

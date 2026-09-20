@@ -16,7 +16,10 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runCurrent
+import kotlin.test.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -251,7 +254,9 @@ class CreateBillViewModelTest{
 
             val finalState = awaitItem()
             assertFalse(finalState.isLoading)
-            assertTrue(finalState.error != null)
+            assertNull(finalState.error)
+            assertTrue(finalState.isSaved)
+            assertEquals(initialBill.id, finalState.savedBill?.id)
 
             cancelAndIgnoreRemainingEvents()
         }
@@ -320,5 +325,52 @@ class CreateBillViewModelTest{
         }
 
         coVerify(exactly = 0) { syncDatabaseUseCase() }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `navigation state waits for persistence and ignores duplicate taps`() = runTest {
+        val bill = Bill(id = "pending", billDate = Clock.System.now(), name = "Pending", type = PurchaseType.SUPERMARKET,
+            userId = "", items = emptyList(), syncStatus = SyncStatus.LSL)
+        val result = CompletableDeferred<Resource<Unit>>()
+        coEvery { authRepository.getCurrentUserId() } returns "user"
+        coEvery { insertBill(any()) } coAnswers { result.await() }
+        coEvery { syncDatabaseUseCase() } just Runs
+
+        viewModel.addBillIntoLocal(bill)
+        viewModel.addBillIntoLocal(bill)
+        runCurrent()
+        assertNull(viewModel.createListState.value.savedBill)
+        assertFalse(viewModel.createListState.value.isSaved)
+        coVerify(exactly = 1) { insertBill(any()) }
+
+        result.complete(Resource.Success(Unit))
+        runCurrent()
+        assertEquals("pending", viewModel.createListState.value.savedBill?.id)
+        assertEquals("user", viewModel.createListState.value.savedBill?.userId)
+        viewModel.onSaveHandled()
+        assertFalse(viewModel.createListState.value.isSaved)
+        assertNull(viewModel.createListState.value.savedBill)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `failed save never signals navigation and allows retry`() = runTest {
+        val bill = Bill(id = "retry", billDate = Clock.System.now(), name = "Retry", type = PurchaseType.SUPERMARKET,
+            userId = "", items = emptyList(), syncStatus = SyncStatus.LSL)
+        coEvery { authRepository.getCurrentUserId() } returns "user"
+        coEvery { insertBill(any()) } returns Resource.Error("Disk full")
+        viewModel.addBillIntoLocal(bill)
+        runCurrent()
+        assertNull(viewModel.createListState.value.savedBill)
+        assertFalse(viewModel.createListState.value.isSaved)
+        assertFalse(viewModel.createListState.value.isLoading)
+
+        coEvery { insertBill(any()) } returns Resource.Success(Unit)
+        coEvery { syncDatabaseUseCase() } just Runs
+        viewModel.addBillIntoLocal(bill)
+        runCurrent()
+        assertEquals("retry", viewModel.createListState.value.savedBill?.id)
+        assertNull(viewModel.createListState.value.error)
     }
 }

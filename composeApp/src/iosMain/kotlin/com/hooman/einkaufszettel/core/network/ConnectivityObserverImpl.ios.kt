@@ -20,10 +20,9 @@ import platform.darwin.dispatch_queue_create
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class ConnectivityObserverImpl(): ConnectivityObserver{
 
-    private val monitor:nw_path_monitor_t = nw_path_monitor_create()
-    private val queue = dispatch_queue_create("NetworkMonitorQueue",null)
-
     actual override val isConnected: Flow<Boolean> get() = callbackFlow {
+        val monitor = nw_path_monitor_create()
+        val queue = dispatch_queue_create("NetworkMonitorQueue",null)
         nw_path_monitor_set_queue(monitor,queue)
         nw_path_monitor_set_update_handler(monitor){path ->
             val connected = nw_path_get_status(path) == nw_path_status_satisfied

@@ -13,7 +13,8 @@ fun ShoppingItem.toEntity(): ShoppingItemEntity {
         itemCount = itemCount,
         isChecked = isChecked,
         discount = discount,
-        syncStatus = syncStatus
+        syncStatus = syncStatus,
+        userId = userId
     )
 }
 
@@ -32,11 +33,12 @@ fun ShoppingItemEntity.toShoppingItem(): ShoppingItem {
         productImage = "",
         isChecked = isChecked,
         syncStatus = syncStatus,
-        userId = ""
+        userId = userId
     )
 }
 
 fun ShoppingDetails.toShoppingItem(currentUserId: String): ShoppingItem{
+    require(userId == currentUserId && userId.isNotBlank()) { "Account ownership mismatch" }
     return ShoppingItem(
         id = shoppingItemId,
         billId = billId,
@@ -48,6 +50,6 @@ fun ShoppingDetails.toShoppingItem(currentUserId: String): ShoppingItem{
         productImage = productImage,
         isChecked = isChecked,
         syncStatus = syncStatus,
-        userId = currentUserId
+        userId = userId
     )
 }

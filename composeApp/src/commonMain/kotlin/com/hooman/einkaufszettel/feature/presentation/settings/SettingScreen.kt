@@ -29,8 +29,10 @@ import coil3.compose.LocalPlatformContext
 import com.hooman.einkaufszettel.app.Routes
 import com.hooman.einkaufszettel.core.presentation.AppDimens
 import com.hooman.einkaufszettel.core.presentation.UiText
+import com.hooman.einkaufszettel.core.presentation.animations.animatedSwipedBackground
 import com.hooman.einkaufszettel.core.presentation.backgroundGradient
 import com.hooman.einkaufszettel.core.presentation.greenGradient
+import com.hooman.einkaufszettel.core.presentation.premiumGrayBlueGradient
 import com.hooman.einkaufszettel.core.presentation.redColor
 import com.hooman.einkaufszettel.core.presentation.redGradient
 import com.hooman.einkaufszettel.core.presentation.whiteColor
@@ -72,6 +74,7 @@ fun SettingScreenRoot(
     val scope = rememberCoroutineScope()
     val platformContext = LocalPlatformContext.current
     val googleTokenFailMessage = UiText.StringResourceId(Res.string.google_login_fail).asString()
+
 
 
     SettingScreen(
@@ -153,7 +156,8 @@ fun SettingScreen(
             )
         }
         LSBox(
-            modifier = Modifier.padding(contentPadding),
+            modifier = Modifier
+                .padding(contentPadding),
             languageCode = languageCode,
             onLanguageSelected = {
                 onButtonClick(it)

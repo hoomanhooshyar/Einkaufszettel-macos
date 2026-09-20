@@ -90,7 +90,7 @@ class FirebaseShoppingItemDataSourceImpl(
             val docummentId = "${billId}_${productId}"
             svc.shoppingItemsCol(billId)
                 .document(docummentId)
-                .update(mapOf("discount" to discount.toString()))
+                .update(mapOf("discount" to discount))
         }
     }
 }

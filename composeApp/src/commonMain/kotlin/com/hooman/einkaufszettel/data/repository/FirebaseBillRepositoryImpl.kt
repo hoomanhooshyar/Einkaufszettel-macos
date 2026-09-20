@@ -5,6 +5,7 @@ import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.repository.FirebaseBillRepository
 import com.hooman.einkaufszettel.domain.source.FirebaseBillDataSource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -19,6 +20,7 @@ class FirebaseBillRepositoryImpl(
             dataSource.insertBill(bill)
             Resource.Success(Unit)
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Resource.Error(e.message)
         }
 
@@ -69,6 +71,7 @@ class FirebaseBillRepositoryImpl(
             dataSource.deleteBill(billId)
             Resource.Success(Unit)
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Resource.Error(e.message)
         }
     }

@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.feature.presentation.home
 
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hooman.einkaufszettel.core.network.ConnectivityObserver
@@ -184,7 +185,7 @@ class HomeViewModel(
                 return@launch
             }
             bills.forEach { bill ->
-                val result = insertBillL(bill)
+                val result = insertBillL(bill.copy(syncStatus = SyncStatus.SUCCESS))
                 if(result is Resource.Error){
                     print("Error in inserting bill into local- ${result.message}")
                 }

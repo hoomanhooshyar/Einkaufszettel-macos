@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.hooman.einkaufszettel.core.presentation.blackColor
+import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.feature.presentation.report.CategoryReport
 
 @Composable
@@ -67,7 +67,7 @@ fun DonutChart(
                 text = centerText,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = blackColor,
+                color = whiteColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

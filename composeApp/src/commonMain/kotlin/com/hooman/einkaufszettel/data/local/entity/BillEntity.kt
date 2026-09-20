@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.datetime.Instant
@@ -12,5 +13,7 @@ data class BillEntity(
     val billDate: Instant,
     val name: String,
     val type: String,
+    @ColumnInfo(defaultValue = "''")
+    val userId: String = "",
     val syncStatus: SyncStatus
 )

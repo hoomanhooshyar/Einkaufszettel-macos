@@ -3,7 +3,6 @@ package com.hooman.einkaufszettel.feature.presentation.report
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hooman.einkaufszettel.core.network.ConnectivityObserver
 import com.hooman.einkaufszettel.core.presentation.UiText
 import com.hooman.einkaufszettel.core.presentation.blueColor
 import com.hooman.einkaufszettel.core.presentation.darkGreenColor
@@ -14,283 +13,227 @@ import com.hooman.einkaufszettel.core.presentation.redColor
 import com.hooman.einkaufszettel.core.util.Resource
 import com.hooman.einkaufszettel.domain.model.Bill
 import com.hooman.einkaufszettel.domain.model.PurchaseType
-import com.hooman.einkaufszettel.domain.repository.AuthRepository
 import com.hooman.einkaufszettel.domain.usecase.GetBillsByDateFromLocalUseCase
-import einkaufszettel.composeapp.generated.resources.Res
-import einkaufszettel.composeapp.generated.resources.apr
-import einkaufszettel.composeapp.generated.resources.aug
-import einkaufszettel.composeapp.generated.resources.dec
-import einkaufszettel.composeapp.generated.resources.feb
-import einkaufszettel.composeapp.generated.resources.friday
-import einkaufszettel.composeapp.generated.resources.jan
-import einkaufszettel.composeapp.generated.resources.jul
-import einkaufszettel.composeapp.generated.resources.jun
-import einkaufszettel.composeapp.generated.resources.mar
-import einkaufszettel.composeapp.generated.resources.may
-import einkaufszettel.composeapp.generated.resources.monday
-import einkaufszettel.composeapp.generated.resources.nov
-import einkaufszettel.composeapp.generated.resources.oct
-import einkaufszettel.composeapp.generated.resources.saturday
-import einkaufszettel.composeapp.generated.resources.sep
-import einkaufszettel.composeapp.generated.resources.sunday
-import einkaufszettel.composeapp.generated.resources.thursday
-import einkaufszettel.composeapp.generated.resources.tuesday
-import einkaufszettel.composeapp.generated.resources.wednesday
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.Instant
-import kotlinx.datetime.Month
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import kotlin.collections.emptyList
 
-import kotlin.time.Duration.Companion.days
-import kotlin.time.ExperimentalTime
-
-
+@OptIn(ExperimentalCoroutinesApi::class)
 class ReportsViewModel(
-    private val getBillL: GetBillsByDateFromLocalUseCase,
-    private val observer: ConnectivityObserver,
-    private val auth: AuthRepository
+    private val getBillL: GetBillsByDateFromLocalUseCase
 ) : ViewModel() {
-    private val _reportState = MutableStateFlow(ReportState())
-    val reportState: StateFlow<ReportState> = _reportState.asStateFlow()
+    private data class Selection(
+        val filter: TimeFilter,
+        val startDate: LocalDate,
+        val endDate: LocalDate,
+        val timeZone: TimeZone,
+        val customStartDate: LocalDate? = null,
+        val customEndDate: LocalDate? = null,
+        val revision: Long = 0
+    )
 
-    private val _userId = MutableStateFlow<String?>(null)
-    val userId = _userId.asStateFlow()
+    private val selection = MutableStateFlow(presetSelection(TimeFilter.MONTH))
 
-    init {
-        _userId.value = auth.getCurrentUserId()
-    }
+    val reportState: StateFlow<ReportState> = selection
+        .flatMapLatest { observeReport(it) }
+        .buffer(0)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            baseState(selection.value)
+        )
 
-    @OptIn(ExperimentalTime::class)
     fun getBillsByDate(
         timeFilter: TimeFilter,
-        customStartDate: Instant?,
-        customEndDate: Instant?
+        customStartDate: LocalDate? = null,
+        customEndDate: LocalDate? = null
     ) {
-        val now = Clock.System.now()
-        var endDate: Instant = now
-        var startDate: Instant = now
-        when (timeFilter) {
-            TimeFilter.WEEK -> startDate -= 7.days
-            TimeFilter.MONTH -> startDate -= 30.days
-            TimeFilter.YEAR -> startDate -= 365.days
-            TimeFilter.CUSTOM -> {
-                startDate = customStartDate ?: (now - 7.days)
-                endDate = customEndDate ?: now
-            }
-        }
-        viewModelScope.launch {
-
-            getBillL(
-                startDate = startDate.toEpochMilliseconds(),
-                endDate = endDate.toEpochMilliseconds()
-            ).collect { res ->
-                when (res) {
-                    is Resource.Success -> {
-                        val totalAmount = calculateTotalAmount(res.data ?: emptyList())
-                        val totalDiscount = calculateDiscount(res.data ?: emptyList())
-                        val average = calculateAveragePerPurchase(res.data ?: emptyList())
-                        val totalItem = calculateTotalItems(res.data ?: emptyList())
-                        val categoryReports = getDonutChartData(res.data ?: emptyList())
-                        val barChartReport = barChartData(res.data ?: emptyList(), timeFilter)
-                        _reportState.value = _reportState.value.copy(
-                            isLoading = false,
-                            error = null,
-                            totalAmount = totalAmount,
-                            averagePerPurchase = average,
-                            purchaseCount = totalItem,
-                            selectedTimeFilter = timeFilter,
-                            categoryReports = categoryReports,
-                            barChartReport = barChartReport,
-                            totalDiscount = totalDiscount
-                            )
-                    }
-
-                    is Resource.Loading -> {
-                        _reportState.value = _reportState.value.copy(
-                            isLoading = true,
-                            error = null
-                        )
-                    }
-
-                    is Resource.Error -> {
-                        _reportState.value = _reportState.value.copy(
-                            isLoading = false,
-                            error = UiText.DynamicString(res.message ?: "Unknown error")
-                        )
-                    }
-                }
-            }
-
-        }
-    }
-
-    private fun calculateTotalAmount(bills: List<Bill>): Double{
-        return bills.sumOf { bill ->
-            bill.items.sumOf { item ->
-                item.itemCount * item.productPrice
-            }
-        }
-    }
-
-    private fun calculateDiscount(bills: List<Bill>): Double{
-        return bills.sumOf { bill ->
-            bill.items.sumOf { item ->
-                (item.productPrice * item.itemCount) * (item.discount / 100)
-            }
-        }
-    }
-
-    private fun calculateTotalItems(bills: List<Bill>): Int{
-        return bills.sumOf { bill ->
-            bill.items.size
-        }
-    }
-
-    private fun calculateAveragePerPurchase(bills: List<Bill>): Double{
-        val totalAmount = calculateTotalAmount(bills)
-        val totalBills = calculateTotalBills(bills)
-        return if(totalBills > 0) totalAmount / totalBills else 0.0
-    }
-
-    private fun calculateTotalBills(bills: List<Bill>): Int{
-        return bills.size
-    }
-
-    private fun getDonutChartData(bills: List<Bill>): List<CategoryReport> {
-
-        val totalPrice = calculateTotalAmount(bills)
-
-        if (totalPrice == 0.0) return emptyList()
-
-        val groupedBills: Map<PurchaseType, List<Bill>> = bills.groupBy { it.type }
-
-        val categoryReports = groupedBills.map { (type, billsOfType) ->
-            val chartColor: Color = when(type){
-                PurchaseType.CLOTH -> darkYellowColor
-                PurchaseType.PARTY -> redColor
-                PurchaseType.FRIENDS -> orangeColor
-                PurchaseType.HOUSE -> purpleColor
-                PurchaseType.OTHER -> blueColor
-                PurchaseType.SUPERMARKET -> darkGreenColor
-            }
-
-            val catPrice = billsOfType.sumOf { bill ->
-                bill.items.sumOf { item ->
-                    item.itemCount * item.productPrice
-                }
-            }
-            val percentage = (catPrice / totalPrice).toFloat()
-            CategoryReport(
-                categoryName = type.name,
-                percentage = percentage,
-                color = chartColor
-            )
-        }
-
-        return categoryReports.sortedByDescending { it.percentage }
-
-    }
-
-    @OptIn(ExperimentalTime::class)
-    private suspend fun barChartData(bills: List<Bill>, timeFilter: TimeFilter): List<BarChartReport>{
-        if(bills.isEmpty()) return emptyList()
-        val timeZone = TimeZone.currentSystemDefault()
-        val barColor = redColor
-
-        return when(timeFilter){
-            TimeFilter.WEEK -> {
-                val daysOfWeek = listOf(
-                    DayOfWeek.MONDAY to UiText.StringResourceId(Res.string.monday).resolve(),
-                    DayOfWeek.TUESDAY to UiText.StringResourceId(Res.string.tuesday).resolve(),
-                    DayOfWeek.WEDNESDAY to UiText.StringResourceId(Res.string.wednesday).resolve(),
-                    DayOfWeek.THURSDAY to UiText.StringResourceId(Res.string.thursday).resolve(),
-                    DayOfWeek.FRIDAY to UiText.StringResourceId(Res.string.friday).resolve(),
-                    DayOfWeek.SATURDAY to UiText.StringResourceId(Res.string.saturday).resolve(),
-                    DayOfWeek.SUNDAY to UiText.StringResourceId(Res.string.sunday).resolve(),
+        selection.update { previous ->
+            if (timeFilter == TimeFilter.CUSTOM) {
+                val start = customStartDate ?: previous.customStartDate ?: previous.startDate
+                val end = customEndDate ?: previous.customEndDate ?: previous.endDate
+                previous.copy(
+                    filter = TimeFilter.CUSTOM,
+                    startDate = start,
+                    endDate = end,
+                    timeZone = TimeZone.currentSystemDefault(),
+                    customStartDate = start,
+                    customEndDate = end
                 )
-
-                daysOfWeek.map { (dayEnum, label) ->
-                    val dayBills = bills.filter { bill ->
-                        bill.billDate.toLocalDateTime(timeZone).dayOfWeek == dayEnum
-                    }
-                    val totalAmount = dayBills.sumOf { bill ->
-                        bill.items.sumOf { it.productPrice * it.itemCount }
-                    }
-
-                    BarChartReport(
-                        label = label,
-                        value = totalAmount.toFloat(),
-                    )
-                }
-            }
-            TimeFilter.MONTH -> {
-                val now = Clock.System.now()
-                val today = now.toLocalDateTime(timeZone).date
-                val last30Days = (20 downTo 0).map { dayAgo ->
-                    today.minus(dayAgo, DateTimeUnit.DAY)
-                }
-
-                last30Days.map { targetDate ->
-                    val dayBills = bills.filter { bill ->
-                        bill.billDate.toLocalDateTime(timeZone).date == targetDate
-                    }
-
-                    val totalAmount = dayBills.sumOf { bill ->
-                        bill.items.sumOf { it.productPrice * it.itemCount }
-                    }
-
-                    val dayStr = targetDate.dayOfMonth.toString().padStart(2,'0')
-                    val monStr = targetDate.monthNumber.toString().padStart(2, '0')
-                    val label = "$dayStr.$monStr"
-
-                    BarChartReport(
-                        label = label,
-                        value = totalAmount.toFloat()
-                    )
-                }
-            }
-            TimeFilter.YEAR -> {
-                val monthsOfYear = listOf(
-                    Month.JANUARY to UiText.StringResourceId(Res.string.jan).resolve(),
-                    Month.FEBRUARY to UiText.StringResourceId(Res.string.feb).resolve(),
-                    Month.MARCH to UiText.StringResourceId(Res.string.mar).resolve(),
-                    Month.APRIL to UiText.StringResourceId(Res.string.apr).resolve(),
-                    Month.MAY to UiText.StringResourceId(Res.string.may).resolve(),
-                    Month.JUNE to UiText.StringResourceId(Res.string.jun).resolve(),
-                    Month.JULY to UiText.StringResourceId(Res.string.jul).resolve(),
-                    Month.AUGUST to UiText.StringResourceId(Res.string.aug).resolve(),
-                    Month.SEPTEMBER to UiText.StringResourceId(Res.string.sep).resolve(),
-                    Month.OCTOBER to UiText.StringResourceId(Res.string.oct).resolve(),
-                    Month.NOVEMBER to UiText.StringResourceId(Res.string.nov).resolve(),
-                    Month.DECEMBER to UiText.StringResourceId(Res.string.dec).resolve()
+            } else {
+                presetSelection(timeFilter).copy(
+                    customStartDate = previous.customStartDate,
+                    customEndDate = previous.customEndDate,
+                    revision = previous.revision
                 )
-                monthsOfYear.map { (monthEnum, label) ->
-                    val monthBills = bills.filter { bill ->
-                        bill.billDate.toLocalDateTime(timeZone).month == monthEnum
-                    }
-                    val totalAmount = monthBills.sumOf { bill ->
-                        bill.items.sumOf { it.productPrice * it.itemCount }
-                    }
-
-                    BarChartReport(
-                        label = label,
-                        value = totalAmount.toFloat()
-                    )
-                }
-            }
-            TimeFilter.CUSTOM -> {
-                emptyList()
             }
         }
+    }
 
+    fun retry() {
+        selection.update { it.copy(revision = it.revision + 1) }
+    }
+
+    private fun presetSelection(filter: TimeFilter): Selection {
+        val zone = TimeZone.currentSystemDefault()
+        val today = Clock.System.now().toLocalDateTime(zone).date
+        val days = when (filter) {
+            TimeFilter.WEEK -> 7
+            TimeFilter.MONTH -> 30
+            TimeFilter.YEAR -> 365
+            TimeFilter.CUSTOM -> error("Custom dates must be supplied separately")
+        }
+        return Selection(filter, today.minus(days - 1, DateTimeUnit.DAY), today, zone)
+    }
+
+    private fun baseState(selection: Selection) = ReportState(
+        selectedTimeFilter = selection.filter,
+        startDate = selection.startDate,
+        endDate = selection.endDate,
+        customStartDate = selection.customStartDate,
+        customEndDate = selection.customEndDate,
+        dateRangeText = "${selection.startDate.toReportDateText()} – ${selection.endDate.toReportDateText()}"
+    )
+
+    private fun observeReport(selection: Selection): Flow<ReportState> {
+        val initial = baseState(selection)
+        return flow {
+            emit(initial)
+            if (selection.startDate > selection.endDate) {
+                emit(initial.copy(
+                    isLoading = false,
+                    error = UiText.DynamicString("Start date must not be after end date.")
+                ))
+                return@flow
+            }
+            val startInclusive = selection.startDate
+                .atStartOfDayIn(selection.timeZone).toEpochMilliseconds()
+            val endExclusive = selection.endDate.plus(1, DateTimeUnit.DAY)
+                .atStartOfDayIn(selection.timeZone).toEpochMilliseconds()
+
+            emitAll(getBillL(startInclusive, endExclusive).mapLatest { result ->
+                when (result) {
+                    is Resource.Loading -> initial
+                    is Resource.Error -> initial.copy(
+                        isLoading = false,
+                        error = UiText.DynamicString(result.message ?: "Unknown error")
+                    )
+                    is Resource.Success -> withContext(Dispatchers.Default) {
+                        calculateReport(result.data.orEmpty(), selection, initial)
+                    }
+                }
+            })
+        }.catch { error ->
+            emit(initial.copy(
+                isLoading = false,
+                error = UiText.DynamicString(error.message ?: "Unknown error")
+            ))
+        }
+    }
+
+    private suspend fun calculateReport(
+        bills: List<Bill>,
+        selection: Selection,
+        initial: ReportState
+    ): ReportState {
+        var totalAmount = 0.0
+        var totalDiscount = 0.0
+        var totalQuantity = 0
+        val dailyAmounts = mutableMapOf<LocalDate, Double>()
+        val categoryAmounts = mutableMapOf<PurchaseType, Double>()
+
+        for (bill in bills) {
+            currentCoroutineContext().ensureActive()
+            var billAmount = 0.0
+            for (item in bill.items) {
+                currentCoroutineContext().ensureActive()
+                val grossAmount = item.productPrice * item.itemCount
+                val discountAmount = grossAmount * (item.discount / 100.0)
+                billAmount += grossAmount - discountAmount
+                totalDiscount += discountAmount
+                totalQuantity += item.itemCount
+            }
+            totalAmount += billAmount
+            val date = bill.billDate.toLocalDateTime(selection.timeZone).date
+            dailyAmounts[date] = (dailyAmounts[date] ?: 0.0) + billAmount
+            categoryAmounts[bill.type] = (categoryAmounts[bill.type] ?: 0.0) + billAmount
+        }
+
+        val categories = if (totalAmount > 0.0) {
+            categoryAmounts.entries.filter { it.value > 0.0 }.map { (type, amount) ->
+                CategoryReport(type.name, (amount / totalAmount).toFloat(), categoryColor(type))
+            }.sortedByDescending { it.percentage }
+        } else emptyList()
+
+        return initial.copy(
+            isLoading = false,
+            totalAmount = totalAmount,
+            totalDiscount = totalDiscount,
+            purchaseCount = totalQuantity,
+            billCount = bills.size,
+            averagePerPurchase = if (bills.isEmpty()) 0.0 else totalAmount / bills.size,
+            categoryReports = categories,
+            barChartReport = if (bills.isEmpty()) emptyList() else buildBarChart(selection, dailyAmounts)
+        )
+    }
+
+    private suspend fun buildBarChart(
+        selection: Selection,
+        dailyAmounts: Map<LocalDate, Double>
+    ): List<BarChartReport> {
+        val days = selection.endDate.toEpochDays() - selection.startDate.toEpochDays() + 1
+        val monthly = selection.filter == TimeFilter.YEAR ||
+            (selection.filter == TimeFilter.CUSTOM && days > 62)
+        fun bucket(date: LocalDate) = if (monthly) LocalDate(date.year, date.monthNumber, 1) else date
+
+        val amounts = mutableMapOf<LocalDate, Double>()
+        for ((date, amount) in dailyAmounts) {
+            currentCoroutineContext().ensureActive()
+            val key = bucket(date)
+            amounts[key] = (amounts[key] ?: 0.0) + amount
+        }
+        var cursor = bucket(selection.startDate)
+        val last = bucket(selection.endDate)
+        val result = mutableListOf<BarChartReport>()
+        while (cursor <= last) {
+            currentCoroutineContext().ensureActive()
+            val month = cursor.monthNumber.toString().padStart(2, '0')
+            val label = if (monthly) "$month.${cursor.year}"
+                else "${cursor.dayOfMonth.toString().padStart(2, '0')}.$month"
+            result += BarChartReport(label, (amounts[cursor] ?: 0.0).toFloat())
+            cursor = cursor.plus(1, if (monthly) DateTimeUnit.MONTH else DateTimeUnit.DAY)
+        }
+        return result
+    }
+
+    private fun categoryColor(type: PurchaseType): Color = when (type) {
+        PurchaseType.CLOTH -> darkYellowColor
+        PurchaseType.PARTY -> redColor
+        PurchaseType.FRIENDS -> orangeColor
+        PurchaseType.HOUSE -> purpleColor
+        PurchaseType.OTHER -> blueColor
+        PurchaseType.SUPERMARKET -> darkGreenColor
     }
 }

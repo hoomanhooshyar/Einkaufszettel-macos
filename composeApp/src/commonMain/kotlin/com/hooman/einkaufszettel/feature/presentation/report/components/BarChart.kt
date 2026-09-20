@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
+import com.hooman.einkaufszettel.core.presentation.whiteColor
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -32,7 +32,7 @@ fun BarChart(
     data: List<BarChartReport>,
 ) {
     val textMeasure = rememberTextMeasurer()
-    val textStyle = MaterialTheme.typography.labelSmall.copy(color = Color.Gray)
+    val textStyle = MaterialTheme.typography.labelSmall.copy(color = whiteColor)
 
     val scrollState = rememberScrollState()
     val itemWidth = 50.dp

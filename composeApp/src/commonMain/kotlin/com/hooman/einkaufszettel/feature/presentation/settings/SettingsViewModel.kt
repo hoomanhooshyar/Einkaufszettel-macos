@@ -9,8 +9,10 @@ import com.hooman.einkaufszettel.domain.repository.SettingsPreferences
 import com.hooman.einkaufszettel.feature.presentation.login.util.GoogleTokens
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -23,6 +25,13 @@ class SettingsViewModel(
     val settingState: StateFlow<SettingsState> = _settingState.asStateFlow()
 
     var getInfoJob: Job? = null
+
+    val currentLanguage = settingsPreferences.languageFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "en"
+        )
 
     init {
         setLanguage()
@@ -38,6 +47,8 @@ class SettingsViewModel(
             }
         }
     }
+
+
 
     private fun getUserInfo(){
         getInfoJob?.cancel()

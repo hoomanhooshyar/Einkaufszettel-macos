@@ -32,19 +32,7 @@ actual val platformModule: Module
         factory<GoogleAuthManager> { GoogleAuthManagerAndroidImpl() }
         single { createDataStore(androidContext()) }
 
-        single<AppDatabase> {
-            val factory = get<DatabaseFactory>()
-            factory.create()
-                .setDriver(BundledSQLiteDriver())
-                .setQueryCoroutineContext(Dispatchers.IO)
-                .addMigrations()
-                .fallbackToDestructiveMigration(true)
-                .build()
-        }
 
-        single<AppDao> {
-            get<AppDatabase>().dao
-        }
     }
 
 

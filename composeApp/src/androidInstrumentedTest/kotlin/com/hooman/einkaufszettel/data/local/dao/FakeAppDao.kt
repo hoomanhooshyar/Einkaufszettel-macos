@@ -14,13 +14,13 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
-class FakeAppDao : AppDao {
+class FakeAppDao : AppDao() {
     private val billTable = MutableStateFlow<List<BillEntity>>(emptyList())
     private val productTable = MutableStateFlow<List<ProductEntity>>(emptyList())
     private val itemTable = MutableStateFlow<List<ShoppingItemEntity>>(emptyList())
 
 
-    override suspend fun insertBill(bill: BillEntity) {
+    override suspend fun upsertBillEntity(bill: BillEntity) {
         billTable.update { current ->
             val list = current.toMutableList()
             list.removeIf { it.id == bill.id }
@@ -29,8 +29,11 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override fun getAllBills(): Flow<List<BillWithItemsAndProducts>> {
-        return combine(billTable, itemTable, productTable){bills, items, products ->
+    override fun getAllBills(userId: String): Flow<List<BillWithItemsAndProducts>> {
+        return combine(billTable, itemTable, productTable){allBills, allItems, allProducts ->
+            val bills = allBills.filter { it.userId == userId && userId.isNotBlank() }
+            val items = allItems.filter { it.userId == userId && userId.isNotBlank() }
+            val products = allProducts.filter { it.userId == userId && userId.isNotBlank() }
             bills.map { currentBill ->
                 val targetItem = items.filter { it.billId == currentBill.id }
                 val itemWithProduct = targetItem.map { shoppingItem ->
@@ -49,8 +52,11 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override fun getBillById(id: String): Flow<BillWithItemsAndProducts?> {
-        return combine(billTable, itemTable, productTable){bills, items, products ->
+    override fun getBillById(id: String, userId: String): Flow<BillWithItemsAndProducts?> {
+        return combine(billTable, itemTable, productTable){allBills, allItems, allProducts ->
+            val bills = allBills.filter { it.userId == userId && userId.isNotBlank() }
+            val items = allItems.filter { it.userId == userId && userId.isNotBlank() }
+            val products = allProducts.filter { it.userId == userId && userId.isNotBlank() }
             val targetBill = bills.find { it.id == id } ?: return@combine null
             val targetItems = items.filter { it.billId == id }
             val itemsWithProducts = targetItems.map { shoppingItem ->
@@ -69,8 +75,11 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override fun getBillByName(name: String): Flow<List<BillWithItemsAndProducts>> {
-        return combine(billTable, itemTable, productTable){bills, items, products ->
+    override fun getBillByName(name: String, userId: String): Flow<List<BillWithItemsAndProducts>> {
+        return combine(billTable, itemTable, productTable){allBills, allItems, allProducts ->
+            val bills = allBills.filter { it.userId == userId && userId.isNotBlank() }
+            val items = allItems.filter { it.userId == userId && userId.isNotBlank() }
+            val products = allProducts.filter { it.userId == userId && userId.isNotBlank() }
             val targetBills = bills.filter { it.name.contains(name, ignoreCase = true) }
 
             targetBills.map { targetBill ->
@@ -92,7 +101,7 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override suspend fun insertShoppingItem(item: ShoppingItemEntity) {
+    override suspend fun upsertShoppingItemEntity(item: ShoppingItemEntity) {
         itemTable.update { current ->
             val list = current.toMutableList()
             list.removeIf { it.id == item.id }
@@ -101,7 +110,7 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override suspend fun insertProduct(product: ProductEntity) {
+    override suspend fun upsertProductEntity(product: ProductEntity) {
         productTable.update { current ->
             val list = current.toMutableList()
             list.removeIf { it.id == product.id }
@@ -110,30 +119,35 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override fun getProductById(id: String): Flow<ProductEntity?> {
-        return productTable.map { products ->
+    override fun getProductById(id: String, userId: String): Flow<ProductEntity?> {
+        return productTable.map { rows ->
+            val products = rows.filter { it.userId == userId && userId.isNotBlank() }
             products.find { it.id == id }
         }
     }
 
-    override fun getAllProducts(): Flow<List<ProductEntity>> {
-        return productTable
+    override fun getAllProducts(userId: String): Flow<List<ProductEntity>> {
+        return productTable.map { rows -> rows.filter { it.userId == userId && userId.isNotBlank() } }
     }
 
-    override fun getProductByName(name: String): Flow<List<ProductEntity>> {
-        return productTable.map { products ->
+    override fun getProductByName(name: String, userId: String): Flow<List<ProductEntity>> {
+        return productTable.map { rows ->
+            val products = rows.filter { it.userId == userId && userId.isNotBlank() }
             products.filter { it.name == name }
         }
     }
 
-    override fun getShoppingItemsByBillId(billId: String): Flow<List<ShoppingItemEntity>> {
-        return itemTable.map { items ->
+    override fun getShoppingItemsByBillId(billId: String, userId: String): Flow<List<ShoppingItemEntity>> {
+        return itemTable.map { rows ->
+            val items = rows.filter { it.userId == userId && userId.isNotBlank() }
             items.filter { it.billId == billId }
         }
     }
 
-    override fun getProductsForShoppingItem(billId: String): Flow<List<ShoppingDetails>> {
-        return combine(itemTable, productTable){items, products ->
+    override fun getProductsForShoppingItem(billId: String, userId: String): Flow<List<ShoppingDetails>> {
+        return combine(itemTable, productTable){allItems, allProducts ->
+            val items = allItems.filter { it.userId == userId && userId.isNotBlank() }
+            val products = allProducts.filter { it.userId == userId && userId.isNotBlank() }
             val targetItems = items.filter { it.billId == billId }
             targetItems.mapNotNull { item ->
                 val product = products.find { it.id == item.productId }
@@ -148,6 +162,7 @@ class FakeAppDao : AppDao {
                         isChecked = item.isChecked,
                         itemCount = item.itemCount,
                         billId = item.billId,
+                        userId = item.userId,
                         syncStatus = item.syncStatus
                     )
                 }else{
@@ -157,44 +172,44 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override fun getAvailableProductsForShoppingItem(billId: String): Flow<List<ProductEntity>> {
-        return productTable
+    override fun getAvailableProductsForShoppingItem(billId: String, userId: String): Flow<List<ProductEntity>> {
+        return productTable.map { rows -> rows.filter { it.userId == userId && userId.isNotBlank() } }
     }
 
-    override fun getCheckedProductsForShoppingItem(billId: String): Flow<List<String>> {
-        return itemTable.map { items ->
+    override fun getCheckedProductsForShoppingItem(billId: String, userId: String): Flow<List<String>> {
+        return itemTable.map { rows ->
+            val items = rows.filter { it.userId == userId && userId.isNotBlank() }
             items
                 .filter { it.billId == billId }
                 .map { it.productId }
         }
     }
 
-    override suspend fun deleteProduct(product: ProductEntity) {
+    override suspend fun deleteProduct(productId: String, userId: String) {
         productTable.update { products ->
-            products.filterNot { it.id == product.id }
+            products.filterNot { it.id == productId && it.userId == userId }
         }
     }
 
-    override suspend fun deleteShoppingItem(shoppingItemId: String) {
+    override suspend fun deleteShoppingItem(shoppingItemId: String, userId: String) {
         itemTable.update { items ->
-            items.filterNot { it.id == shoppingItemId }
+            items.filterNot { it.id == shoppingItemId && it.userId == userId }
         }
     }
 
     override suspend fun deleteShoppingItemByProductAndBill(
         billId: String,
-        productId: String
-    ) {
+        productId: String, userId: String) {
         itemTable.update { items ->
-            items.filterNot { it.billId == billId && it.productId == productId }
+            items.filterNot { it.billId == billId && it.productId == productId && it.userId == userId }
         }
     }
 
-    override suspend fun updateShoppingItemCount(id: String, itemCount: Int) {
+    override suspend fun updateShoppingItemCount(id: String, itemCount: Int, userId: String) {
         itemTable.update { items ->
             items.map { item ->
-                if(item.id == id){
-                    item.copy(itemCount = itemCount)
+                if(item.id == id && item.userId == userId){
+                    item.copy(itemCount = itemCount, syncStatus = SyncStatus.LSL)
                 }else{
                     item
                 }
@@ -202,20 +217,19 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override suspend fun deleteBill(bill: BillEntity) {
+    override suspend fun deleteBill(billId: String, userId: String) {
         billTable.update { bills ->
-            bills.filterNot { it.id == bill.id }
+            bills.filterNot { it.id == billId && it.userId == userId }
         }
     }
 
     override suspend fun updateShoppingItemCheckStatus(
         id: String,
-        isChecked: Boolean
-    ) {
+        isChecked: Boolean, userId: String) {
         itemTable.update { items ->
             items.map { item ->
-                if(item.id == id){
-                    item.copy(isChecked = isChecked)
+                if(item.id == id && item.userId == userId){
+                    item.copy(isChecked = isChecked, syncStatus = SyncStatus.LSL)
                 }else{
                     item
                 }
@@ -223,11 +237,11 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override suspend fun updateShoppingItemDiscount(id: String, discount: Float) {
+    override suspend fun updateShoppingItemDiscount(id: String, discount: Float, userId: String) {
         itemTable.update { items ->
             items.map { item ->
-                if(item.id == id){
-                    item.copy(discount = discount)
+                if(item.id == id && item.userId == userId){
+                    item.copy(discount = discount, syncStatus = SyncStatus.LSL)
                 }else{
                     item
                 }
@@ -237,12 +251,14 @@ class FakeAppDao : AppDao {
 
     override fun getAllBillsByDate(
         startDate: Long,
-        endDate: Long
-    ): Flow<List<BillWithItemsAndProducts>> {
-        return combine(billTable, itemTable, productTable){bills, items, products ->
+        endDate: Long, userId: String): Flow<List<BillWithItemsAndProducts>> {
+        return combine(billTable, itemTable, productTable){allBills, allItems, allProducts ->
+            val bills = allBills.filter { it.userId == userId && userId.isNotBlank() }
+            val items = allItems.filter { it.userId == userId && userId.isNotBlank() }
+            val products = allProducts.filter { it.userId == userId && userId.isNotBlank() }
             val filteredBills = bills.filter { bill ->
                 val dateInMillis = bill.billDate.toEpochMilliseconds()
-                dateInMillis in startDate..endDate
+                dateInMillis >= startDate && dateInMillis < endDate
             }
             filteredBills.map { currentBill ->
                 val targetItems = items.filter { it.billId == currentBill.id }
@@ -264,69 +280,62 @@ class FakeAppDao : AppDao {
         }
     }
 
-    override fun getProductIcons(): Flow<List<String>> {
-        return productTable.map { products ->
+    override fun getProductIcons(userId: String): Flow<List<String>> {
+        return productTable.map { rows ->
+            val products = rows.filter { it.userId == userId && userId.isNotBlank() }
             products.map {
                 it.image ?: ""
             }
         }
     }
 
-    override fun getBillUnSyncData(syncStatus: SyncStatus): Flow<List<BillEntity>> {
-        return billTable.map { bills ->
+    override fun getBillUnSyncData(syncStatus: SyncStatus, userId: String): Flow<List<BillEntity>> {
+        return billTable.map { rows ->
+            val bills = rows.filter { it.userId == userId && userId.isNotBlank() }
             bills.filter {
-                it.syncStatus == syncStatus
+                it.syncStatus != syncStatus
             }
         }
     }
 
     override suspend fun updateBillSyncStatus(
         billId: String,
-        syncStatus: SyncStatus
-    ) {
+        syncStatus: SyncStatus, userId: String) {
         billTable.update { current ->
             current.map {
-                if(it.id == billId) it.copy(syncStatus = syncStatus) else it
+                if(it.id == billId && it.userId == userId) it.copy(syncStatus = syncStatus) else it
             }
         }
     }
 
-    override suspend fun insertBillList(bills: List<BillEntity>) {
-        billTable.update { currentBills->
-            val newIds = bills.map { it.id }.toSet()
-            currentBills.filterNot { it.id in newIds } + bills
-        }
-    }
 
-    override fun getProductUnSyncData(syncStatus: SyncStatus): Flow<List<ProductEntity>> {
-        return productTable.map { products ->
+
+    override fun getProductUnSyncData(syncStatus: SyncStatus, userId: String): Flow<List<ProductEntity>> {
+        return productTable.map { rows ->
+            val products = rows.filter { it.userId == userId && userId.isNotBlank() }
             products.filter {
-                it.syncStatus == syncStatus
+                it.syncStatus != syncStatus
             }
         }
     }
 
     override suspend fun updateProductSyncStatus(
         productId: String,
-        syncStatus: SyncStatus
-    ) {
+        syncStatus: SyncStatus, userId: String) {
         productTable.update { products ->
             products.map {
-                if(it.id == productId) it.copy(syncStatus = syncStatus) else it
+                if(it.id == productId && it.userId == userId) it.copy(syncStatus = syncStatus) else it
             }
         }
     }
 
-    override suspend fun insertProductList(products: List<ProductEntity>) {
-        productTable.update { currentProducts ->
-            val newIds = products.map { it.id }.toSet()
-            currentProducts.filterNot { it.id in newIds } + products
-        }
-    }
 
-    override fun getShoppingItemUnSyncData(syncStatus: SyncStatus): Flow<List<ShoppingDetails>> {
-        return combine(itemTable, productTable){items, products ->
-            val filteredItems = items.filter { it.syncStatus == syncStatus }
+
+    override fun getShoppingItemUnSyncData(syncStatus: SyncStatus, userId: String): Flow<List<ShoppingDetails>> {
+        return combine(itemTable, productTable){allItems, allProducts ->
+            val items = allItems.filter { it.userId == userId && userId.isNotBlank() }
+            val products = allProducts.filter { it.userId == userId && userId.isNotBlank() }
+            val filteredItems = items.filter { it.syncStatus != syncStatus }
             filteredItems.mapNotNull { filterItem ->
                 val product = products.find { it.id == filterItem.productId }
                 if(product != null){
@@ -340,6 +349,7 @@ class FakeAppDao : AppDao {
                         isChecked = filterItem.isChecked,
                         itemCount = filterItem.itemCount,
                         billId = filterItem.billId,
+                        userId = filterItem.userId,
                         syncStatus = filterItem.syncStatus
                     )
                 }else{
@@ -352,17 +362,33 @@ class FakeAppDao : AppDao {
 
     override suspend fun updateShoppingItemSyncStatus(
         itemId: String,
-        syncStatus: SyncStatus
-    ) {
+        syncStatus: SyncStatus, userId: String) {
         itemTable.update { items ->
-            items.map { if(it.id == itemId) it.copy(syncStatus = syncStatus) else it }
+            items.map { if(it.id == itemId && it.userId == userId) it.copy(syncStatus = syncStatus) else it }
         }
     }
 
-    override suspend fun insertItemList(items: List<ShoppingItemEntity>) {
-        itemTable.update { currentItems ->
-            val newIds = items.map { it.id }.toSet()
-            currentItems.filterNot { it.id in newIds } + items
-        }
-    }
+
+
+    override suspend fun canWriteBill(id: String, userId: String) =
+        billTable.value.none { it.id == id && it.userId != userId }
+
+    override suspend fun canWriteProduct(id: String, userId: String) =
+        productTable.value.none { it.id == id && it.userId != userId }
+
+    override suspend fun canWriteItem(id: String, userId: String) =
+        itemTable.value.none { it.id == id && it.userId != userId }
+
+    override suspend fun ownsParents(billId: String, productId: String, userId: String) =
+        billTable.value.any { it.id == billId && it.userId == userId } &&
+            productTable.value.any { it.id == productId && it.userId == userId }
+
+    override suspend fun readBill(id: String, userId: String) =
+        billTable.value.find { it.id == id && it.userId == userId && userId.isNotBlank() }
+
+    override suspend fun readProduct(id: String, userId: String) =
+        productTable.value.find { it.id == id && it.userId == userId && userId.isNotBlank() }
+
+    override suspend fun readShoppingItem(id: String, userId: String) =
+        itemTable.value.find { it.id == id && it.userId == userId && userId.isNotBlank() }
 }

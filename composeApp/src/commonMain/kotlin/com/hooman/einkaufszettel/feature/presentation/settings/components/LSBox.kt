@@ -17,6 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.hooman.einkaufszettel.core.presentation.animations.animatedSwipedBackground
+import com.hooman.einkaufszettel.core.presentation.premiumGrayBlueGradient
+import com.hooman.einkaufszettel.core.presentation.redGradient
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.english
 import einkaufszettel.composeapp.generated.resources.german
@@ -35,10 +38,10 @@ fun LSBox(
         modifier = modifier.padding(horizontal = 16.dp)
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
-    ){
+    ) {
         Column(
             modifier = Modifier
-        ){
+        ) {
             LanSelector(
                 modifier = Modifier,
                 onClick = {

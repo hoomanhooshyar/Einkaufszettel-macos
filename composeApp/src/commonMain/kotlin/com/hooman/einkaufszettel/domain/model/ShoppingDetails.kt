@@ -14,5 +14,6 @@ data class ShoppingDetails(
     val isChecked: Boolean,
     val itemCount: Int?,
     val billId: String,
+    val userId: String = "",
     val syncStatus: SyncStatus
 )

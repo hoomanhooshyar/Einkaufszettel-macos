@@ -9,11 +9,14 @@ import com.hooman.einkaufszettel.domain.repository.FirebaseProductRepository
 import com.hooman.einkaufszettel.domain.repository.FirebaseShoppingItemRepository
 import com.hooman.einkaufszettel.domain.repository.LocalRepository
 import com.hooman.einkaufszettel.domain.repository.SyncRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class SyncRepositoryImpl(
     private val localRepository: LocalRepository,
@@ -22,7 +25,9 @@ class SyncRepositoryImpl(
     private val apiItem: FirebaseShoppingItemRepository,
     private val authRepository: AuthRepository
 ): SyncRepository {
-    override suspend fun syncDatabase() {
+    private val syncMutex = Mutex()
+
+    override suspend fun syncDatabase() = syncMutex.withLock {
         withContext(Dispatchers.IO){
             try {
                 //=================
@@ -33,6 +38,12 @@ class SyncRepositoryImpl(
 
                 if(userId.isNullOrEmpty()) return@withContext
 
+                fun ensureSameAccount() {
+                    if (authRepository.getCurrentUserId() != userId) {
+                        throw CancellationException("Account changed during synchronization")
+                    }
+                }
+
                 //Product
                 val productResource =
                     localRepository.getProductUnSyncData().first { it !is Resource.Loading }
@@ -42,15 +53,21 @@ class SyncRepositoryImpl(
 
                     for (product in productList){
                         try {
-                            val finalProduct = product.copy(userId = userId, syncStatus = SyncStatus.SUCCESS )
+                            ensureSameAccount()
+                            require(product.userId == userId)
+                            val finalProduct = product.copy(syncStatus = SyncStatus.SUCCESS)
                             val response = apiProduct.insertProduct(finalProduct)
                             if(response is Resource.Success){
-                                localRepository.updateProductSyncStatus(product.id, SyncStatus.SUCCESS)
+                                ensureSameAccount()
+                                localRepository.acknowledgeProduct(product, SyncStatus.SUCCESS)
                             }else{
-                                localRepository.updateProductSyncStatus(product.id, SyncStatus.RSF)
+                                ensureSameAccount()
+                                localRepository.acknowledgeProduct(product, SyncStatus.RSF)
                             }
                         }catch (e: Exception){
-                            localRepository.updateProductSyncStatus(product.id, SyncStatus.RSF)
+                            if (e is CancellationException) throw e
+                            ensureSameAccount()
+                            localRepository.acknowledgeProduct(product, SyncStatus.RSF)
                         }
                     }
                 }
@@ -63,16 +80,22 @@ class SyncRepositoryImpl(
 
                     for(bill in billList){
                         try {
-                            val finalBill = bill.copy(userId = userId, syncStatus = SyncStatus.SUCCESS)
+                            ensureSameAccount()
+                            require(bill.userId == userId)
+                            val finalBill = bill.copy(syncStatus = SyncStatus.SUCCESS)
                             val response = apiBill.insertBill(finalBill)
                             if(response is Resource.Success){
-                                localRepository.updateBillSyncStatus(bill.id, SyncStatus.SUCCESS)
+                                ensureSameAccount()
+                                localRepository.acknowledgeBill(bill, SyncStatus.SUCCESS)
                             }else{
-                                localRepository.updateBillSyncStatus(bill.id, SyncStatus.RSF)
+                                ensureSameAccount()
+                                localRepository.acknowledgeBill(bill, SyncStatus.RSF)
                             }
 
                         }catch (e: Exception){
-                            localRepository.updateBillSyncStatus(bill.id, SyncStatus.RSF)
+                            if (e is CancellationException) throw e
+                            ensureSameAccount()
+                            localRepository.acknowledgeBill(bill, SyncStatus.RSF)
                         }
                     }
                 }
@@ -86,16 +109,22 @@ class SyncRepositoryImpl(
                     for(item in itemList){
                         try {
 
+                            ensureSameAccount()
+                            require(item.userId == userId)
                             val domainItem = item.toShoppingItem(currentUserId = userId)
                             val finalItem = domainItem.copy(syncStatus = SyncStatus.SUCCESS)
                             val response = apiItem.insertShoppingItem(finalItem)
                             if(response is Resource.Success){
-                                localRepository.updateShoppingItemSyncStatus(item.shoppingItemId, SyncStatus.SUCCESS)
+                                ensureSameAccount()
+                                localRepository.acknowledgeShoppingItem(item.toShoppingItem(currentUserId = userId), SyncStatus.SUCCESS)
                             }else{
-                                localRepository.updateShoppingItemSyncStatus(item.shoppingItemId, SyncStatus.RSF)
+                                ensureSameAccount()
+                                localRepository.acknowledgeShoppingItem(item.toShoppingItem(currentUserId = userId), SyncStatus.RSF)
                             }
                         }catch (e: Exception){
-                            localRepository.updateShoppingItemSyncStatus(item.shoppingItemId, SyncStatus.RSF)
+                            if (e is CancellationException) throw e
+                            ensureSameAccount()
+                            localRepository.acknowledgeShoppingItem(item.toShoppingItem(currentUserId = userId), SyncStatus.RSF)
                         }
                     }
                 }
@@ -106,36 +135,43 @@ class SyncRepositoryImpl(
 
 
                 //Product
+                ensureSameAccount()
                 val remoteProductResource = apiProduct.getAllProductsByUserId(userId).first{it !is Resource.Loading}
                 if(remoteProductResource is Resource.Success){
                     val remoteProduct = remoteProductResource.data ?: emptyList()
                     if(remoteProduct.isNotEmpty()){
                         val syncProduct = remoteProduct.map { it.copy(syncStatus = SyncStatus.SUCCESS) }
+                        ensureSameAccount()
                         localRepository.insertProductList(syncProduct)
                     }
                 }
 
                 //Bill
+                ensureSameAccount()
                 val remoteBillResource = apiBill.getAllBillsByUserId(userId).first{it !is Resource.Loading}
                 if(remoteBillResource is Resource.Success){
                     val remoteBill = remoteBillResource.data ?: emptyList()
                     if(remoteBill.isNotEmpty()){
                         val syncBill = remoteBill.map { it.copy(syncStatus = SyncStatus.SUCCESS) }
+                        ensureSameAccount()
                         localRepository.insertBillList(syncBill)
                     }
                 }
 
                 //ShoppingItem
+                ensureSameAccount()
                 val remoteItemResource = apiItem.getAllShoppingItemsByUserId(userId).first{it !is Resource.Loading}
                 if(remoteItemResource is Resource.Success){
                     val remoteItem = remoteItemResource.data ?: emptyList()
                     if(remoteItem.isNotEmpty()){
                         val syncItem = remoteItem.map { it.copy(syncStatus = SyncStatus.SUCCESS) }
+                        ensureSameAccount()
                         localRepository.insertItemList(syncItem)
                     }
                 }
 
             }catch (e: Exception){
+                if (e is CancellationException) throw e
                 e.printStackTrace()
             }
         }

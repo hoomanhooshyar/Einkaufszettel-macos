@@ -24,14 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import com.hooman.einkaufszettel.core.presentation.AppDimens
-import com.hooman.einkaufszettel.core.presentation.blackColor
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.feature.presentation.report.CategoryReport
 import com.hooman.einkaufszettel.feature.presentation.report.ChartGuide
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.no_data
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.roundToInt
+import com.hooman.einkaufszettel.core.util.toTwoDecimals
 
 @Composable
 fun DonutChartCard(
@@ -84,11 +83,11 @@ fun DonutChartCard(
                 }else{
                     val max = data.maxOf { it.percentage }
 
-                    val formattedMax = (max * 100.0).roundToInt() / 100.0f
+                    val formattedMax = (max.toDouble() * 100.0).toTwoDecimals()
                     val guides: List<ChartGuide> = data.map { cat ->
                         ChartGuide(
                             title = cat.categoryName,
-                            value = "${cat.percentage}",
+                            value = "${(cat.percentage.toDouble() * 100.0).toTwoDecimals()}%",
                             color = cat.color
                         )
                     }
@@ -97,7 +96,7 @@ fun DonutChartCard(
                             .padding(AppDimens.spacingMedium)
                             .fillMaxWidth(),
                         text = titleChart,
-                        color = blackColor,
+                        color = whiteColor,
                         fontSize = 16.sp
                     )
                     Row(
@@ -109,7 +108,7 @@ fun DonutChartCard(
                         DonutChart(
                             modifier = Modifier.weight(1f),
                             data = data,
-                            centerText = "$formattedMax"
+                            centerText = "$formattedMax%"
                         )
                         ChartGuide(
                             modifier = Modifier.weight(1f),

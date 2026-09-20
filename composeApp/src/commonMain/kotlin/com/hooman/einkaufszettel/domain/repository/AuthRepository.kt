@@ -5,6 +5,8 @@ import com.hooman.einkaufszettel.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
+    val userId: Flow<String?>
+
     fun getCurrentUserId(): String?
 
     suspend fun signInWithGoogle(idToken: String, accessToken: String?):Resource<User>

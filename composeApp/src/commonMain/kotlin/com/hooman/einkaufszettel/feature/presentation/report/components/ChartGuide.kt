@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hooman.einkaufszettel.core.presentation.AppDimens
-import com.hooman.einkaufszettel.core.presentation.blackColor
+import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.domain.model.PurchaseType
 import com.hooman.einkaufszettel.feature.presentation.report.ChartGuide
 import kotlin.math.roundToInt
@@ -34,7 +34,7 @@ import kotlin.math.roundToInt
 fun ChartGuide(
     modifier: Modifier = Modifier,
     guides: List<ChartGuide>,
-    textColor: Color = blackColor,
+    textColor: Color = whiteColor,
     dotSize: Dp = 16.dp
 ) {
         Column(
@@ -45,7 +45,6 @@ fun ChartGuide(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ){
              guides.forEach { guide ->
-                 val formattedValue = (guide.value.toFloat() * 100.0).roundToInt() / 100.0f
                  val icon = when(guide.title){
                      PurchaseType.SUPERMARKET.name -> PurchaseType.SUPERMARKET.icon
                      PurchaseType.PARTY.name -> PurchaseType.PARTY.icon
@@ -76,10 +75,10 @@ fun ChartGuide(
                          modifier = Modifier.padding(8.dp),
                          imageVector = icon,
                          contentDescription = null,
-                         tint = blackColor
+                         tint = whiteColor
                      )
                      Text(
-                         text = "${formattedValue}",
+                         text = guide.value,
                          color = textColor,
                          maxLines = 1,
                          overflow = TextOverflow.Ellipsis

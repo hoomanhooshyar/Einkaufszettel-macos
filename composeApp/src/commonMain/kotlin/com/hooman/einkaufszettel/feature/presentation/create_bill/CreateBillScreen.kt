@@ -90,28 +90,21 @@ fun CreateBillScreenRoot(
 
 
     }
-    if(state.isLoading){
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ){
-            CircularProgressIndicator(
-                color = redColor,
-            )
+    LaunchedEffect(state.savedBill) {
+        state.savedBill?.let { bill ->
+            viewModel.onSaveHandled()
+            onSaved(bill)
         }
-    }else{
-        CreateBillScreen(
-            contentPadding = contentPadding,
-            onCancel = onCancel,
-            background = backgroundGradient,
-            onSaved = {
-                viewModel.addBillIntoLocal(it)
-                onSaved(it)
-            },
-            snackBarHostState = snackBarHostState
-        )
     }
+
+    CreateBillScreen(
+        contentPadding = contentPadding,
+        onCancel = onCancel,
+        background = backgroundGradient,
+        onSaved = viewModel::addBillIntoLocal,
+        snackBarHostState = snackBarHostState,
+        isSaving = state.isLoading || state.isSaved
+    )
 
 }
 
@@ -122,7 +115,8 @@ fun CreateBillScreen(
     onCancel: () -> Unit,
     background: Brush,
     onSaved: (bill: Bill?) -> Unit,
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    isSaving: Boolean = false
 ) {
     var billNameState by remember { mutableStateOf("")}
     val date = Clock.System.now()
@@ -203,7 +197,9 @@ fun CreateBillScreen(
             modifier = Modifier.height(36.dp)
         )
 
-        Row(
+        if (isSaving) {
+            CircularProgressIndicator(color = redColor)
+        } else Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ){

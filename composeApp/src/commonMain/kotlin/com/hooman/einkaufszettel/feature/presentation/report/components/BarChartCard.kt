@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hooman.einkaufszettel.core.presentation.AppDimens
-import com.hooman.einkaufszettel.core.presentation.blackColor
 import com.hooman.einkaufszettel.core.presentation.whiteColor
 import com.hooman.einkaufszettel.feature.presentation.report.BarChartReport
 import com.hooman.einkaufszettel.feature.presentation.report.ChartGuide
@@ -91,7 +90,7 @@ fun BarChartCard(
                     Text(
                         modifier = Modifier.padding(AppDimens.spacingSmall),
                         text = titleChart,
-                        color = blackColor,
+                        color = whiteColor,
                         fontSize = 16.sp
                     )
                     BarChart(

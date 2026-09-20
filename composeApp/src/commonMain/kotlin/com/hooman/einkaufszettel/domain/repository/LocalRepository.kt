@@ -61,4 +61,8 @@ interface LocalRepository {
     suspend fun insertProductList(products: List<Product>): Resource<Unit>
 
 
+
+    suspend fun acknowledgeBill(uploaded: Bill, status: SyncStatus): Boolean
+    suspend fun acknowledgeProduct(uploaded: Product, status: SyncStatus): Boolean
+    suspend fun acknowledgeShoppingItem(uploaded: ShoppingItem, status: SyncStatus): Boolean
 }

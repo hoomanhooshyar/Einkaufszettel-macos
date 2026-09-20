@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -57,34 +58,35 @@ fun MainScreen(
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
 
-    val snackBarHostState = remember{ SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
 
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
 
     val isLogin by viewModel.loginState.collectAsState()
 
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         viewModel.checkLogin()
     }
 
 
-
     Scaffold(
-
         bottomBar = {
-            BottomBar(
-                navController = navController,
-                items = BottomItems.default()
-            )
+            val currentLanguage by viewModel.currentLanguage.collectAsState()
+            key(currentLanguage) {
+                BottomBar(
+                    navController = navController,
+                    items = BottomItems.default()
+                )
+            }
         },
         floatingActionButton = {
-            if(currentRoute == Routes.Home::class.qualifiedName || currentRoute == Routes.Products::class.qualifiedName){
+            if (currentRoute == Routes.Home::class.qualifiedName || currentRoute == Routes.Products::class.qualifiedName) {
                 FloatingActionButton(
                     onClick = {
-                        if(currentRoute == Routes.Home::class.qualifiedName){
+                        if (currentRoute == Routes.Home::class.qualifiedName) {
                             navController.navigate(Routes.CreateList)
-                        }else if(currentRoute == Routes.Products::class.qualifiedName){
+                        } else if (currentRoute == Routes.Products::class.qualifiedName) {
                             navController.navigate(Routes.AddProduct())
                         }
 
@@ -95,7 +97,7 @@ fun MainScreen(
                     elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(
                         defaultElevation = 8.dp
                     )
-                ){
+                ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add"
@@ -103,7 +105,7 @@ fun MainScreen(
                 }
             }
         },
-        snackbarHost = { SnackbarHost(snackBarHostState)}
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { padding ->
 
         AppNavGraph(
@@ -114,4 +116,5 @@ fun MainScreen(
         )
 
     }
+
 }

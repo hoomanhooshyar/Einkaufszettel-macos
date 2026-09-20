@@ -44,7 +44,7 @@ fun CustomFilterTab(
                     .clip(CircleShape)
                     .clickable{onTabClick(index)}
                     .padding(horizontal = 12.dp, vertical = 10.dp),
-                color = if(isSelected) whiteColor else whiteColor.copy(0.6f),
+                color = whiteColor,
                 fontWeight = if(isSelected) FontWeight.Bold else FontWeight.Normal,
                 fontSize = 15.sp
             )

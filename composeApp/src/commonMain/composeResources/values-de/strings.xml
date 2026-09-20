@@ -20,7 +20,7 @@
     <string name="bill_remove_remote_fail">Rechnung wurde vom Server nicht gelöscht</string>
     <string name="bill_remove_remote_success">Rechnung wurde vom Server gelöscht</string>
     <string name="shopping_item_is_disabled">Sie können diesen Artikel nicht aktualisieren</string>
-    <string name="discount_error">Der Rabatt muss größer als 0 sein</string>
+    <string name="discount_error">Der Rabatt muss größer als 0 und kleiner als 100 sein</string>
     <string name="no_data">Keine Daten</string>
     <string name="discount">Rabatt</string>
     <string name="total">Gesamt</string>
@@ -104,4 +104,14 @@
     <string name="friends">Freunde</string>
     <string name="cloth">Kleidung</string>
     <string name="other">Sonstiges</string>
+    <string name="report_week">Woche</string>
+    <string name="report_month">Monat</string>
+    <string name="report_year">Jahr</string>
+    <string name="report_custom">Benutzerdefiniert</string>
+    <string name="report_start_date">Startdatum</string>
+    <string name="report_end_date">Enddatum</string>
+    <string name="report_select_dates">Daten auswählen</string>
+    <string name="report_date_range">Zeitraum auswählen</string>
+    <string name="report_retry">Erneut versuchen</string>
+    <string name="report_bar_chart">Ausgaben im Zeitverlauf</string>
 </resources>

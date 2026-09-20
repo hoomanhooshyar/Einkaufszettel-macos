@@ -74,6 +74,7 @@ class SyncStatusIntegrationTest: KoinTest {
     @Before
     fun setup(){
         val fakeAuth = object: AuthRepository {
+            override val userId = kotlinx.coroutines.flow.flowOf("test_123")
             override fun getCurrentUserId(): String? {
                 return "test_123"
             }
@@ -99,7 +100,7 @@ class SyncStatusIntegrationTest: KoinTest {
 
         }
         dao = FakeAppDao()
-        repository = LocalRepositoryImpl(dao)
+        repository = LocalRepositoryImpl(dao, fakeAuth)
         dynamicTestModule = module {
             single<AppDao> {dao}
             single<LocalRepository> {repository}

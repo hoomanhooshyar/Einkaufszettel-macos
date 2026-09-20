@@ -9,13 +9,16 @@ import dev.gitlive.firebase.auth.FirebaseAuth
 import dev.gitlive.firebase.auth.GoogleAuthProvider
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth
 ): AuthRepository {
+    override val userId: Flow<String?> = auth.authStateChanged.map { it?.uid }.distinctUntilChanged()
+
     override fun getCurrentUserId(): String? {
-        return Firebase.auth.currentUser?.uid
+        return auth.currentUser?.uid
     }
 
     override suspend fun signInWithGoogle(idToken: String, accessToken: String?):Resource<User> {

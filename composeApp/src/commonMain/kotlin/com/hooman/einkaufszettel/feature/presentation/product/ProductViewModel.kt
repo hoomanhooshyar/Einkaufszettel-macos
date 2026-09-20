@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.feature.presentation.product
 
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hooman.einkaufszettel.core.network.ConnectivityObserver
@@ -151,7 +152,7 @@ class ProductViewModel(
             }
 
             products.forEach { product ->
-                val result = insertProductL(product)
+                val result = insertProductL(product.copy(syncStatus = SyncStatus.SUCCESS))
                 if(result is Resource.Error){
                     print("Error in inserting product into local- ${result.message}")
                 }

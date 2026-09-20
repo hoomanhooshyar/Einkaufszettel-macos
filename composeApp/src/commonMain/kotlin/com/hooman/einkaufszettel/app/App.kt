@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.hooman.einkaufszettel.feature.presentation.login.LoginScreenRoot
-import com.hooman.einkaufszettel.feature.presentation.main.MainScreen
+import com.hooman.einkaufszettel.core.presentation.RootNavGraph
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -28,6 +28,6 @@ import einkaufszettel.composeapp.generated.resources.compose_multiplatform
 @Preview
 fun App() {
     MaterialTheme {
-        MainScreen()
+        RootNavGraph()
     }
 }

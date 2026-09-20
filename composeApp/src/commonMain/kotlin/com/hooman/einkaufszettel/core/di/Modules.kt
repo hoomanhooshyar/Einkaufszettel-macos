@@ -104,15 +104,11 @@ val sharedModule = module {
 
 
     //Database
-    single<AppDatabase> {
-        DatabaseConstructor.initialize()
-    }
 
     single {
         get<DatabaseFactory>().create()
             .setDriver(BundledSQLiteDriver())
-            .addMigrations()
-            .fallbackToDestructiveMigration(true)
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 

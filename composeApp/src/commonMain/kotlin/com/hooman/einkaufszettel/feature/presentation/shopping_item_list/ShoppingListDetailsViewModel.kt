@@ -1,6 +1,7 @@
 package com.hooman.einkaufszettel.feature.presentation.shopping_item_list
 
 import androidx.lifecycle.SavedStateHandle
+import com.hooman.einkaufszettel.data.local.entity.SyncStatus
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
@@ -15,13 +16,11 @@ import com.hooman.einkaufszettel.domain.usecase.DeleteShoppingItemFromRemoteUseC
 import com.hooman.einkaufszettel.domain.usecase.GetBillByIdFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetProductForShoppingItemFromLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.GetShoppingItemByBillIdFromRemoteUseCase
+import com.hooman.einkaufszettel.domain.usecase.SyncDatabaseUseCase
 import com.hooman.einkaufszettel.domain.usecase.InsertShoppingItemToLocalUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCheckStatusInRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemCountInRemoteUseCase
 import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemDiscountInLocalUseCase
-import com.hooman.einkaufszettel.domain.usecase.UpdateShoppingItemDiscountInRemoteUseCase
 import einkaufszettel.composeapp.generated.resources.Res
 import einkaufszettel.composeapp.generated.resources.data_removed_just_from_local
 import einkaufszettel.composeapp.generated.resources.data_removed_successfully
@@ -49,11 +48,9 @@ class ShoppingListDetailsViewModel(
     private val deleteShoppingItemL: DeleteShoppingItemFromLocalUseCase,
     private val deleteShoppingItemR: DeleteShoppingItemFromRemoteUseCase,
     private val updateItemCountL: UpdateShoppingItemCountInLocalUseCase,
-    private val updateItemCountR: UpdateShoppingItemCountInRemoteUseCase,
     private val updateItemCheckStatusL: UpdateShoppingItemCheckStatusInLocalUseCase,
-    private val updateItemCheckStatusR: UpdateShoppingItemCheckStatusInRemoteUseCase,
-    private val updateDiscountR: UpdateShoppingItemDiscountInRemoteUseCase,
     private val updateDiscountL: UpdateShoppingItemDiscountInLocalUseCase,
+    private val syncDatabase: SyncDatabaseUseCase,
 
     private val observer: ConnectivityObserver,
     private val auth: AuthRepository
@@ -167,7 +164,7 @@ class ShoppingListDetailsViewModel(
                 return@launch
             }
             shoppingItems.forEach { item ->
-                val result = insertShoppingItemL(item, billId) //Here
+                val result = insertShoppingItemL(item.copy(syncStatus = SyncStatus.SUCCESS), billId) //Here
                 if (result is Resource.Error) {
                     print("Error in inserting product into local- ${result.message}")
                 }
@@ -262,8 +259,6 @@ class ShoppingListDetailsViewModel(
             return
         }
         val currentList = _listDetailsState.value.shoppingDetailsItems ?: emptyList()
-        val tagetItem = currentList.find { it.shoppingItemId == shoppingItemId }
-        val targetProductId = tagetItem?.productId
         val updateList = currentList.map { item ->
             if (item.shoppingItemId == shoppingItemId) {
                 item.copy(itemCount = itemCount)
@@ -274,8 +269,9 @@ class ShoppingListDetailsViewModel(
 
         _listDetailsState.value = _listDetailsState.value.copy(shoppingDetailsItems = updateList)
 
-        debounceJob[shoppingItemId]?.cancel()
-        debounceJob[shoppingItemId] = viewModelScope.launch {
+        val debounceKey = "${shoppingItemId}_quantity"
+        debounceJob[debounceKey]?.cancel()
+        debounceJob[debounceKey] = viewModelScope.launch {
             delay(500)
 
             val localResult =
@@ -285,6 +281,7 @@ class ShoppingListDetailsViewModel(
                 _listDetailsState.value = _listDetailsState.value.copy(
                     error = UiText.StringResourceId(Res.string.update_fail)
                 )
+                return@launch
             }
 
             val online = observer.isConnected.first()
@@ -297,19 +294,7 @@ class ShoppingListDetailsViewModel(
                 return@launch
             }
 
-            if (targetProductId != null) {
-                val remoteResult = updateItemCountR(
-                    billId = billId,
-                    productId = targetProductId,
-                    itemCount = itemCount
-                )
-
-                if (remoteResult is Resource.Error) {
-                    _listDetailsState.value = _listDetailsState.value.copy(
-                        error = UiText.StringResourceId(Res.string.update_fail)
-                    )
-                }
-            }
+            syncDatabase()
         }
 
     }
@@ -323,16 +308,20 @@ class ShoppingListDetailsViewModel(
                     error = UiText.StringResourceId(Res.string.update_fail)
                 )
             }
-            val remoteResult = updateItemCheckStatusR(billId, shoppingItemId, isChecked)
-            if (remoteResult is Resource.Error) {
-                _listDetailsState.value = _listDetailsState.value.copy(
-                    error = UiText.StringResourceId(Res.string.update_fail)
-                )
+            if (localResult is Resource.Success && observer.isConnected.first()) {
+                syncDatabase()
             }
         }
     }
 
     fun updateDiscount(shoppingItemId: String, discount: Float) {
+        if (!discount.isFinite() || discount <= 0f || discount >= 100f) {
+            _listDetailsState.value = _listDetailsState.value.copy(
+                error = UiText.StringResourceId(Res.string.discount_error)
+            )
+            return
+        }
+        val validatedDiscount = discount
 
         val item =
             _listDetailsState.value.shoppingDetailsItems?.find { it.shoppingItemId == shoppingItemId }
@@ -354,18 +343,9 @@ class ShoppingListDetailsViewModel(
 
         val currentList = _listDetailsState.value.shoppingDetailsItems ?: emptyList()
 
-        val targetItem = currentList.find { it.shoppingItemId == shoppingItemId }
-        val targetProductId = targetItem?.productId
         val updateList = currentList.map { item ->
             if (item.shoppingItemId == shoppingItemId) {
-                item.copy(discount = discount)
-                if (discount > 0) {
-                    val finalPrice = item.productPrice - (item.productPrice * discount / 100)
-                    item.copy(productPrice = finalPrice)
-                } else {
-                    item
-
-                }
+                item.copy(discount = validatedDiscount)
             } else {
                 item
             }
@@ -376,14 +356,16 @@ class ShoppingListDetailsViewModel(
             isLoading = false
         )
 
-        debounceJob[shoppingItemId]?.cancel()
-        debounceJob[shoppingItemId] = viewModelScope.launch {
+        val debounceKey = "${shoppingItemId}_discount"
+        debounceJob[debounceKey]?.cancel()
+        debounceJob[debounceKey] = viewModelScope.launch {
             delay(1000)
-            val localResult = updateDiscountL(shoppingItemId = shoppingItemId, discount = discount)
+            val localResult = updateDiscountL(shoppingItemId = shoppingItemId, discount = validatedDiscount)
             if (localResult is Resource.Error) {
                 _listDetailsState.value = _listDetailsState.value.copy(
                     error = UiText.StringResourceId(Res.string.update_fail)
                 )
+                return@launch
             }
 
             val online = observer.isConnected.first()
@@ -396,20 +378,7 @@ class ShoppingListDetailsViewModel(
                 return@launch
             }
 
-            if (targetProductId != null) {
-                val remoteResult = updateDiscountR(
-                    billId = billId,
-                    productId = targetProductId,
-                    discount = discount
-                )
-
-                if(remoteResult is Resource.Error){
-                    _listDetailsState.value = _listDetailsState.value.copy(
-                        error = UiText.DynamicString(remoteResult.message!!),
-                        isLoading = false
-                    )
-                }
-            }
+            syncDatabase()
         }
     }
 

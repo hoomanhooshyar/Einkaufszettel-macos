@@ -1,5 +1,6 @@
 package com.hooman.einkaufszettel.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -31,5 +32,7 @@ data class ShoppingItemEntity(
     val itemCount: Int,
     val discount: Float,
     val isChecked: Boolean,
+    @ColumnInfo(defaultValue = "''")
+    val userId: String = "",
     val syncStatus: SyncStatus
 )
