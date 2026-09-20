@@ -182,14 +182,14 @@ kotlin {
 
 android {
     namespace = "com.hooman.einkaufszettel"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.hooman.einkaufszettel"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 19
-        versionName = "1.19"
+        targetSdk = 37
+        versionCode = 21
+        versionName = "1.21"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
