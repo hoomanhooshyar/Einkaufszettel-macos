@@ -74,11 +74,9 @@ kotlin {
             extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
         }
         pod("FirebaseFirestore"){
-            linkOnly = true
             extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
         }
         pod("FirebaseAnalytics"){
-            linkOnly = true
             extraOpts += listOf("-compiler-options", "-fmodules -fcxx-modules")
         }
         extraSpecAttributes["source_files"] = "'../iosApp/GoogleSignInBridge.{h,m}'"
